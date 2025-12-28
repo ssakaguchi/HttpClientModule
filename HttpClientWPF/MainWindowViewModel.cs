@@ -42,7 +42,7 @@ namespace HttpClientWPF
         {
             try
             {
-                 var configData = new ConfigData
+                var configData = new ConfigData
                 {
                     Host = this.HostName.Value,
                     Port = this.PortNo.Value.ToString(),
@@ -59,7 +59,16 @@ namespace HttpClientWPF
 
         private void OnSendButtonClicked()
         {
-            throw new NotImplementedException();
+            try
+            {
+                var client = Client.Instance;
+                client.Initialize();
+                var message = client.GetMessage(string.Empty);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 }
