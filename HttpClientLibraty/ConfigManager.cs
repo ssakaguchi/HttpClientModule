@@ -2,7 +2,7 @@
 
 namespace HttpClientLibraty
 {
-    internal class ConfigManager
+    public class ConfigManager
     {
         private static ConfigData? _configData;
         public static ConfigData GetConfigData()
@@ -20,6 +20,14 @@ namespace HttpClientLibraty
             }
 
             return _configData;
+        }
+
+        public static void SaveConfigData(ConfigData configData)
+        {
+            string filePath = "external_setting_file.json";
+            string jsonText = JsonConvert.SerializeObject(configData, Formatting.Indented);
+            File.WriteAllText(filePath, jsonText);
+            _configData = configData;
         }
     }
 
