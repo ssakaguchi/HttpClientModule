@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace HttpClientLibraty
+﻿namespace HttpClientLibraty
 {
     public class Client
     {
