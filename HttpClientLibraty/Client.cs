@@ -1,4 +1,4 @@
-﻿namespace HttpClientLibraty
+﻿namespace HttpClientService
 {
     public class Client
     {

@@ -1,4 +1,4 @@
-﻿using HttpClientLibraty;
+﻿using HttpClientService;
 using Reactive.Bindings;
 using Reactive.Bindings.Disposables;
 using Reactive.Bindings.Extensions;
