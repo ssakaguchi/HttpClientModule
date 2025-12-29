@@ -8,8 +8,9 @@
         prism:ViewModelLocator.AutoWireViewModel="True"
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d"
+        Background="LightCyan"
         Loaded="Window_Loaded"
-        Title="HttpClient" Height="330" Width="600" ResizeMode="NoResize">
+        Title="HttpClient" Height="330" Width="800" ResizeMode="NoResize">
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
             <i:InvokeCommandAction Command="{Binding LoadedCommand}"/>
@@ -21,7 +22,7 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="2*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -30,7 +31,7 @@
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0">
             <GroupBox Margin="10,5,10,0"
-                      Header="Server Information"
+                      Header="URI"
                       FontSize="20">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">

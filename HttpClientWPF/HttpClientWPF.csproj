@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HttpClientLibraty\HttpClientLibraty.csproj" />
+    <ProjectReference Include="..\HttpClientLibraty\HttpClientService.csproj" />
     <ProjectReference Include="..\LoggerService\LoggerService.csproj" />
   </ItemGroup>
 

@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace HttpClientLibraty
+namespace HttpClientService
 {
     public class ConfigManager
     {

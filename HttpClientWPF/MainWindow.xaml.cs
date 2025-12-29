@@ -15,7 +15,6 @@ namespace HttpClientWPF
             
             LogTextBox.TextChanged += (_, __) =>
             {
-                // レイアウト反映後にスクロールさせると安定します
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
                     LogTextBox.ScrollToEnd();
