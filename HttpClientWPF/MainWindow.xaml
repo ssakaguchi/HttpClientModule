@@ -9,12 +9,15 @@
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d"
         Loaded="Window_Loaded"
-        Title="HttpClient" Height="300" Width="600" MaxHeight="300" MaxWidth="600" MinHeight="300" MinWidth="600">
+        Title="HttpClient" Height="330" Width="600" ResizeMode="NoResize">
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
             <i:InvokeCommandAction Command="{Binding LoadedCommand}"/>
         </i:EventTrigger>
     </i:Interaction.Triggers>
+    <Window.InputBindings>
+        <MouseBinding MouseAction="LeftClick" Command="{Binding ClearMessageCommand}" />
+    </Window.InputBindings>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -23,6 +26,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0">
             <GroupBox Margin="10,5,10,0"
@@ -57,5 +61,8 @@
             <Button Content="Send" Command="{Binding SendCommand}" FontSize="16" Margin="5" Height="30" Width="60" HorizontalAlignment="Right"/>
         </DockPanel>
         <TextBox x:Name="LogTextBox" Grid.Column="1" Grid.RowSpan="2" Text="{Binding LogText.Value}"  Margin="5" IsReadOnly="True" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+        <Border Grid.ColumnSpan="2" Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Padding="8">
+            <TextBlock Text="{Binding StatusMessage.Value}" FontSize="12" Foreground="Black"/>
+        </Border>
     </Grid>
 </Window>

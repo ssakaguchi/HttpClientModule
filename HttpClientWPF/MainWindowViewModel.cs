@@ -11,10 +11,13 @@ namespace HttpClientWPF
         public ReactiveProperty<string> Path { get; } = new ReactiveProperty<string>();
         public ReactiveProperty<int> TimeoutSeconds { get; } = new ReactiveProperty<int>();
         public ReactiveProperty<string> LogText { get; } = new ReactiveProperty<string>();
+        public ReactiveProperty<string> StatusMessage { get; } = new ReactiveProperty<string>(string.Empty);
 
         public ReactiveCommand LoadedCommand { get; } = new();
         public ReactiveCommand SaveCommand { get; } = new ReactiveCommand();
         public ReactiveCommand SendCommand { get; } = new ReactiveCommand();
+        public ReactiveCommand ClearMessageCommand { get; } = new ReactiveCommand();
+
 
         private ILog Logger { get; } = LogManager.GetLogger(typeof(MainWindowViewModel));
 
@@ -26,6 +29,8 @@ namespace HttpClientWPF
             SaveCommand.Subscribe(this.OnSaveButtonClicked);
             SendCommand.Subscribe(this.OnSendButtonClicked);
             LoadedCommand.Subscribe(this.OnLoaded);
+            ClearMessageCommand.Subscribe(this.ClearMessage);
+
 
             // 通信履歴ファイルの監視を開始
             _logFileWatcher = new CommunicationLogFileWatcher();
@@ -62,9 +67,12 @@ namespace HttpClientWPF
                     TimeoutSeconds = this.TimeoutSeconds.Value
                 };
                 ConfigManager.SaveConfigData(configData);
+
+                StatusMessage.Value = "設定を保存しました。";
             }
             catch (Exception)
             {
+                StatusMessage.Value = "設定の保存に失敗しました。";
                 throw;
             }
         }
@@ -83,5 +91,11 @@ namespace HttpClientWPF
         }
 
         private void OnLogFileChanged(object? sender, string content) => LogText.Value = content;
+
+
+        private void ClearMessage()
+        {
+            StatusMessage.Value = string.Empty;
+        }
     }
 }
