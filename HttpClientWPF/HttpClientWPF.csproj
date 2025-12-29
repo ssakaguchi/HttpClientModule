@@ -20,12 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HttpClientLibraty\HttpClientLibraty.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="log4net.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <ProjectReference Include="..\LoggerService\LoggerService.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,16 +1,18 @@
 ﻿using HttpClientLibraty;
-using log4net;
 using Reactive.Bindings;
+using Reactive.Bindings.Disposables;
+using Reactive.Bindings.Extensions;
+using LoggerService;
 
 namespace HttpClientWPF
 {
-    public class MainWindowViewModel : BindableBase
+    public class MainWindowViewModel : BindableBase, IDisposable
     {
-        public ReactiveProperty<string> HostName { get; } = new ReactiveProperty<string>();
-        public ReactiveProperty<int> PortNo { get; } = new ReactiveProperty<int>();
-        public ReactiveProperty<string> Path { get; } = new ReactiveProperty<string>();
-        public ReactiveProperty<int> TimeoutSeconds { get; } = new ReactiveProperty<int>();
-        public ReactiveProperty<string> LogText { get; } = new ReactiveProperty<string>();
+        public ReactiveProperty<string> HostName { get; } = new ReactiveProperty<string>(string.Empty);
+        public ReactiveProperty<int> PortNo { get; } = new ReactiveProperty<int>(0);
+        public ReactiveProperty<string> Path { get; } = new ReactiveProperty<string>(string.Empty);
+        public ReactiveProperty<int> TimeoutSeconds { get; } = new ReactiveProperty<int>(0);
+        public ReactiveProperty<string> LogText { get; } = new ReactiveProperty<string>(string.Empty);
         public ReactiveProperty<string> StatusMessage { get; } = new ReactiveProperty<string>(string.Empty);
 
         public ReactiveCommand LoadedCommand { get; } = new();
@@ -19,21 +21,28 @@ namespace HttpClientWPF
         public ReactiveCommand ClearMessageCommand { get; } = new ReactiveCommand();
 
 
-        private ILog Logger { get; } = LogManager.GetLogger(typeof(MainWindowViewModel));
+        private static class CommunicationLog
+        {
+            public const string Directory = @"logs";
+            public const string FilePath = @"Communication.log";
+        }
 
+        private readonly CompositeDisposable _disposables = new();
 
-        private CommunicationLogFileWatcher _logFileWatcher;
+        private readonly ILog4netAdapter Logger =
+            Log4netAdapterFactory.Create(logDirectoryName: CommunicationLog.Directory, logFileName: CommunicationLog.FilePath);
+
+        private readonly ILogFileWatcher _logFileWatcher = 
+            LogFileWatcherFactory.Create(logDirectoryName: CommunicationLog.Directory, logFileName: CommunicationLog.FilePath);
 
         public MainWindowViewModel()
         {
-            SaveCommand.Subscribe(this.OnSaveButtonClicked);
-            SendCommand.Subscribe(this.OnSendButtonClicked);
-            LoadedCommand.Subscribe(this.OnLoaded);
-            ClearMessageCommand.Subscribe(this.ClearMessage);
-
+            SaveCommand.Subscribe(this.OnSaveButtonClicked).AddTo(_disposables);
+            SendCommand.Subscribe(this.OnSendButtonClicked).AddTo(_disposables);
+            LoadedCommand.Subscribe(this.OnLoaded).AddTo(_disposables);
+            ClearMessageCommand.Subscribe(this.ClearMessage).AddTo(_disposables);
 
             // 通信履歴ファイルの監視を開始
-            _logFileWatcher = new CommunicationLogFileWatcher();
             _logFileWatcher.FileChanged += OnLogFileChanged;
         }
 
@@ -49,9 +58,10 @@ namespace HttpClientWPF
                 this.Path.Value = configData.Path;
                 this.TimeoutSeconds.Value = configData.TimeoutSeconds;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw;
+                Logger.Error("Loadに失敗しました。", e);
+                StatusMessage.Value = "Loadに失敗しました。";
             }
         }
 
@@ -70,10 +80,10 @@ namespace HttpClientWPF
 
                 StatusMessage.Value = "設定を保存しました。";
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Logger.Error("設定の保存に失敗しました。", e);
                 StatusMessage.Value = "設定の保存に失敗しました。";
-                throw;
             }
         }
 
@@ -84,18 +94,22 @@ namespace HttpClientWPF
                 var message = Client.Instance.GetMessage(string.Empty);
                 Logger.Info($"受信メッセージ: {message}");
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw;
+                Logger.Error("送信に失敗しました。", e);
+                StatusMessage.Value = "送信に失敗しました。";
             }
         }
 
         private void OnLogFileChanged(object? sender, string content) => LogText.Value = content;
 
+        private void ClearMessage() => StatusMessage.Value = string.Empty;
 
-        private void ClearMessage()
+        public void Dispose()
         {
-            StatusMessage.Value = string.Empty;
+            _logFileWatcher.FileChanged -= OnLogFileChanged;
+            _logFileWatcher.Dispose();
+            _disposables.Dispose();
         }
     }
 }
