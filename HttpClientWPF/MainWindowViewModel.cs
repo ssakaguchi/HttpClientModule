@@ -18,11 +18,18 @@ namespace HttpClientWPF
 
         private ILog Logger { get; } = LogManager.GetLogger(typeof(MainWindowViewModel));
 
+
+        private CommunicationLogFileWatcher _logFileWatcher;
+
         public MainWindowViewModel()
         {
             SaveCommand.Subscribe(this.OnSaveButtonClicked);
             SendCommand.Subscribe(this.OnSendButtonClicked);
             LoadedCommand.Subscribe(this.OnLoaded);
+
+            // 通信履歴ファイルの監視を開始
+            _logFileWatcher = new CommunicationLogFileWatcher();
+            _logFileWatcher.FileChanged += OnLogFileChanged;
         }
 
         // todo: 画面に入力されている設定と保存済の設定に差分がある場合は、送信ボタンを無効化するようにする
@@ -74,5 +81,7 @@ namespace HttpClientWPF
                 throw;
             }
         }
+
+        private void OnLogFileChanged(object? sender, string content) => LogText.Value = content;
     }
 }
