@@ -17,16 +17,6 @@
         {
         }
 
-        public void Initialize()
-        {
-            var config = ConfigManager.GetConfigData();
-            var baseAddress = $"http://{config.Host}:{config.Port}/{config.Path}";
-
-            // HttpClientの初期化処理
-            _httpClient.BaseAddress = new Uri(baseAddress);
-            _httpClient.Timeout = TimeSpan.FromSeconds(config.TimeoutSeconds);
-        }
-
         public string GetMessage(string command)
         {
             var httpResponseMessage = Get(command);
@@ -37,6 +27,16 @@
         {
             try
             {
+                var config = ConfigManager.GetConfigData();
+                var baseAddress = $"http://{config.Host}:{config.Port}/{config.Path}";
+
+                // HttpClientの初期化処理
+                _httpClient = new HttpClient
+                {
+                    BaseAddress = new Uri(baseAddress),
+                    Timeout = TimeSpan.FromSeconds(config.TimeoutSeconds)
+                };
+
                 return _httpClient.GetAsync(command).GetAwaiter().GetResult();
             }
             catch (TaskCanceledException)
