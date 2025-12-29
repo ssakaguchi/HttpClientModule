@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpClientLibraty", "HttpCl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpClientWPF", "HttpClientWPF\HttpClientWPF.csproj", "{1096D3C6-95E7-49C2-8D5A-CAC153B8E23D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggerService", "LoggerService\LoggerService.csproj", "{5A72A992-AC64-404B-B90E-030B2884B5D6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{1096D3C6-95E7-49C2-8D5A-CAC153B8E23D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1096D3C6-95E7-49C2-8D5A-CAC153B8E23D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1096D3C6-95E7-49C2-8D5A-CAC153B8E23D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A72A992-AC64-404B-B90E-030B2884B5D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A72A992-AC64-404B-B90E-030B2884B5D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A72A992-AC64-404B-B90E-030B2884B5D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A72A992-AC64-404B-B90E-030B2884B5D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -2,6 +2,7 @@
 using Reactive.Bindings;
 using Reactive.Bindings.Disposables;
 using Reactive.Bindings.Extensions;
+using LoggerService;
 
 namespace HttpClientWPF
 {
@@ -22,9 +23,7 @@ namespace HttpClientWPF
 
         private readonly CompositeDisposable _disposables = new();
 
-        //private readonly ILog4netAdapter Logger = Log4netAdapter.Create();
-        private readonly LoggerService.ILog4netAdapter Logger = LoggerService.Log4netAdapter.Create();
-
+        private readonly ILog4netAdapter Logger = Log4netAdapter.Create(logDirectoryName: "logs", logFileName: "Communication.log");
 
         private CommunicationLogFileWatcher _logFileWatcher;
 
