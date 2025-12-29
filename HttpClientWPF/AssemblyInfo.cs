@@ -1,5 +1,4 @@
 using System.Windows;
-using log4net.Config;
 
 [assembly: ThemeInfo(
     ResourceDictionaryLocation.None,            //where theme specific resource dictionaries are located
@@ -9,5 +8,3 @@ using log4net.Config;
                                                 //(used if a resource is not found in the page,
                                                 // app, or any theme specific resource dictionaries)
 )]
-
-[assembly: XmlConfigurator(ConfigFile = @"log4net.xml", Watch = true)]

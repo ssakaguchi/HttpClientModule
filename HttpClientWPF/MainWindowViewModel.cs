@@ -38,6 +38,8 @@ namespace HttpClientWPF
             // 通信履歴ファイルの監視を開始
             _logFileWatcher = new CommunicationLogFileWatcher();
             _logFileWatcher.FileChanged += OnLogFileChanged;
+
+            Log4netAdapter.Configure();
         }
 
         // todo: 画面に入力されている設定と保存済の設定に差分がある場合は、送信ボタンを無効化するようにする
