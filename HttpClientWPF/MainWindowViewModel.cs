@@ -21,11 +21,19 @@ namespace HttpClientWPF
         public ReactiveCommand ClearMessageCommand { get; } = new ReactiveCommand();
 
 
+        private static class CommunicationLog
+        {
+            public const string Directory = @"logs";
+            public const string FilePath = @"Communication.log";
+        }
+
         private readonly CompositeDisposable _disposables = new();
 
-        private readonly ILog4netAdapter Logger = Log4netAdapter.Create(logDirectoryName: "logs", logFileName: "Communication.log");
+        private readonly ILog4netAdapter Logger =
+            Log4netAdapterFactory.Create(logDirectoryName: CommunicationLog.Directory, logFileName: CommunicationLog.FilePath);
 
-        private CommunicationLogFileWatcher _logFileWatcher;
+        private readonly ILogFileWatcher _logFileWatcher = 
+            LogFileWatcherFactory.Create(logDirectoryName: CommunicationLog.Directory, logFileName: CommunicationLog.FilePath);
 
         public MainWindowViewModel()
         {
@@ -34,9 +42,7 @@ namespace HttpClientWPF
             LoadedCommand.Subscribe(this.OnLoaded).AddTo(_disposables);
             ClearMessageCommand.Subscribe(this.ClearMessage).AddTo(_disposables);
 
-
             // 通信履歴ファイルの監視を開始
-            _logFileWatcher = new CommunicationLogFileWatcher();
             _logFileWatcher.FileChanged += OnLogFileChanged;
         }
 
