@@ -1,15 +1,17 @@
-﻿using log4net;
+﻿using System.IO;
+using log4net;
 using log4net.Appender;
 using log4net.Core;
 using log4net.Layout;
 using log4net.Repository.Hierarchy;
-using System.IO;
 
 namespace HttpClientWPF
 {
-    internal class Log4netAdapter
+    public sealed class Log4netAdapter: ILog4netAdapter
     {
-        public static void Configure()
+        private ILog Logger { get; } = LogManager.GetLogger(typeof(Log4netAdapter));
+
+        public Log4netAdapter()
         {
             // ログディレクトリ作成
             var logDir = Path.Combine(AppContext.BaseDirectory, "logs");
@@ -25,7 +27,7 @@ namespace HttpClientWPF
             // RollingFileAppender
             var appender = new RollingFileAppender
             {
-                Name = "ConsoleAppender", 
+                Name = "ConsoleAppender",
                 File = Path.Combine(logDir, "Communication.log"),
                 AppendToFile = true,
                 RollingStyle = RollingFileAppender.RollingMode.Size,
@@ -42,6 +44,25 @@ namespace HttpClientWPF
             hierarchy.Root.Level = Level.All;
             hierarchy.Root.AddAppender(appender);
             hierarchy.Configured = true;
+
         }
+
+        public void Info(string message) => Logger.Info(message);
+
+        public void Error(string message) => Logger.Error(message);
+
+        public void Error(string message, Exception ex) => Logger.Error(message, ex);
+
+        public static ILog4netAdapter Create() => new Log4netAdapter();
+    }
+
+
+    public interface ILog4netAdapter
+    {
+        public void Info(string message);
+
+        public void Error(string message);
+
+        public void Error(string message, Exception ex);
     }
 }

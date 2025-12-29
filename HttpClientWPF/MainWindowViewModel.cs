@@ -1,5 +1,4 @@
 ﻿using HttpClientLibraty;
-using log4net;
 using Reactive.Bindings;
 using Reactive.Bindings.Disposables;
 using Reactive.Bindings.Extensions;
@@ -22,7 +21,9 @@ namespace HttpClientWPF
 
 
         private readonly CompositeDisposable _disposables = new();
-        private ILog Logger { get; } = LogManager.GetLogger(typeof(MainWindowViewModel));
+
+        //private readonly ILog4netAdapter Logger = Log4netAdapter.Create();
+        private readonly LoggerService.ILog4netAdapter Logger = LoggerService.Log4netAdapter.Create();
 
 
         private CommunicationLogFileWatcher _logFileWatcher;
@@ -38,8 +39,6 @@ namespace HttpClientWPF
             // 通信履歴ファイルの監視を開始
             _logFileWatcher = new CommunicationLogFileWatcher();
             _logFileWatcher.FileChanged += OnLogFileChanged;
-
-            Log4netAdapter.Configure();
         }
 
         // todo: 画面に入力されている設定と保存済の設定に差分がある場合は、送信ボタンを無効化するようにする
