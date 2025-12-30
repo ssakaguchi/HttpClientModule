@@ -30,7 +30,7 @@
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0">
             <GroupBox Margin="10,5,10,0"
-                      Header="Server Information"
+                      Header="URI"
                       FontSize="20">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
