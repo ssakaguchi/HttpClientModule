@@ -29,7 +29,7 @@ namespace HttpClientWPF
 
         private readonly CompositeDisposable _disposables = new();
 
-        private readonly ILog4netAdapter Logger =
+        private readonly ILog4netAdapter _logger =
             Log4netAdapterFactory.Create(logDirectoryName: CommunicationLog.Directory, logFileName: CommunicationLog.FilePath);
 
         private readonly ILogFileWatcher _logFileWatcher = 
@@ -60,7 +60,7 @@ namespace HttpClientWPF
             }
             catch (Exception e)
             {
-                Logger.Error("Loadに失敗しました。", e);
+                _logger.Error("Loadに失敗しました。", e);
                 StatusMessage.Value = "Loadに失敗しました。";
             }
         }
@@ -82,7 +82,7 @@ namespace HttpClientWPF
             }
             catch (Exception e)
             {
-                Logger.Error("設定の保存に失敗しました。", e);
+                _logger.Error("設定の保存に失敗しました。", e);
                 StatusMessage.Value = "設定の保存に失敗しました。";
             }
         }
@@ -92,11 +92,11 @@ namespace HttpClientWPF
             try
             {
                 var message = Client.Instance.GetMessage(string.Empty);
-                Logger.Info($"受信メッセージ: {message}");
+                _logger.Info($"受信メッセージ: {message}");
             }
             catch (Exception e)
             {
-                Logger.Error("送信に失敗しました。", e);
+                _logger.Error("送信に失敗しました。", e);
                 StatusMessage.Value = "送信に失敗しました。";
             }
         }
