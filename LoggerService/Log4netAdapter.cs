@@ -10,8 +10,36 @@ namespace LoggerService
     {
         private ILog Logger { get; } = LogManager.GetLogger(typeof(Log4netAdapter));
 
-        public Log4netAdapter(string logDirectoryName, string logFileName)
+        private static Log4netAdapter? _instance;
+
+        /// <summary>インスタンス</summary>
+        public static Log4netAdapter Instance
         {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new Log4netAdapter();
+                }
+                return _instance;
+            }
+        }
+
+        private Log4netAdapter()
+        {
+        }
+
+        internal static void Initialize(string logDirectoryName, string logFileName)
+        {
+            var hierarchy = (Hierarchy)LogManager.GetRepository();
+
+            // 既に追加済みなら何もしない
+            if (hierarchy.Root.Appenders.Cast<IAppender>()
+                .Any(a => a.Name == "RollingFileAppender"))
+            {
+                return;
+            }
+
             // ログディレクトリ作成
             var logDir = Path.Combine(AppContext.BaseDirectory, logDirectoryName);
             Directory.CreateDirectory(logDir);
@@ -39,11 +67,9 @@ namespace LoggerService
             appender.ActivateOptions();
 
             // Root logger 設定
-            var hierarchy = (Hierarchy)LogManager.GetRepository();
             hierarchy.Root.Level = Level.All;
             hierarchy.Root.AddAppender(appender);
             hierarchy.Configured = true;
-
         }
 
         public void Info(string message) => Logger.Info(message);
@@ -55,7 +81,11 @@ namespace LoggerService
 
     public static class Log4netAdapterFactory
     {
-        public static ILog4netAdapter Create(string logDirectoryName, string logFileName) => new Log4netAdapter(logDirectoryName, logFileName);
+        public static ILog4netAdapter Create(string logDirectoryName, string logFileName)
+        {
+            Log4netAdapter.Initialize(logDirectoryName, logFileName);
+            return Log4netAdapter.Instance;
+        }
     }
 
     public interface ILog4netAdapter
