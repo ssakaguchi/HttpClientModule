@@ -1,4 +1,7 @@
-﻿namespace HttpClientService
+﻿using System.Net.Http.Headers;
+using System.Text;
+
+namespace HttpClientService
 {
     public class Client
     {
@@ -36,9 +39,28 @@
 
             using var request = new HttpRequestMessage(HttpMethod.Get, command);
 
+            if (config.AuthenticationMethod.Equals("Basic"))
+            {
+                // Basic認証ヘッダ付与
+                request.Headers.Authorization = CreateBasicAuthHeader(
+                    config.User,
+                    config.Password
+                );
+            }
+
             try
             {
-                return _httpClient.SendAsync(request).GetAwaiter().GetResult();
+                var httpResponseMessage  = _httpClient.SendAsync(request).GetAwaiter().GetResult();
+
+                // ステータスコードが成功でない場合は例外をスロー
+                httpResponseMessage.EnsureSuccessStatusCode();
+
+                return httpResponseMessage;
+            }
+            catch (HttpRequestException)
+            {
+                // 通信エラー
+                throw;
             }
             catch (TaskCanceledException)
             {
@@ -74,6 +96,14 @@
 
             _currentBaseAddress = baseAddress;
             _currentTimeoutSeconds = timeoutSeconds;
+        }
+
+        private static AuthenticationHeaderValue CreateBasicAuthHeader(string user, string password)
+        {
+            var raw = $"{user}:{password}";
+            var bytes = Encoding.UTF8.GetBytes(raw);
+            var base64 = Convert.ToBase64String(bytes);
+            return new AuthenticationHeaderValue("Basic", base64);
         }
     }
 }
