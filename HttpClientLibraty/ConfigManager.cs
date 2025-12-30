@@ -44,6 +44,15 @@ namespace HttpClientService
 
         [JsonProperty("timeout_seconds")]
         public int TimeoutSeconds { get; set; } = 20;
+
+        [JsonProperty("use_basic_auth")]
+        public bool UseBasicAuth { get; set; }
+
+        [JsonProperty("user")]
+        public string User { get;  set; } = string.Empty;
+
+        [JsonProperty("password")]
+        public string Password { get; set; } = string.Empty;
     }
 
 }

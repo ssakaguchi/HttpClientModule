@@ -1,8 +1,8 @@
 ﻿using HttpClientService;
+using LoggerService;
 using Reactive.Bindings;
 using Reactive.Bindings.Disposables;
 using Reactive.Bindings.Extensions;
-using LoggerService;
 
 namespace HttpClientWPF
 {
@@ -14,6 +14,9 @@ namespace HttpClientWPF
         public ReactiveProperty<int> TimeoutSeconds { get; } = new ReactiveProperty<int>(0);
         public ReactiveProperty<string> LogText { get; } = new ReactiveProperty<string>(string.Empty);
         public ReactiveProperty<string> StatusMessage { get; } = new ReactiveProperty<string>(string.Empty);
+        public ReactiveProperty<bool> UseBasicAuth { get; } = new ReactiveProperty<bool>(false);
+        public ReactiveProperty<string> User { get; } = new ReactiveProperty<string>(string.Empty);
+        public ReactiveProperty<string> Password { get; } = new ReactiveProperty<string>(string.Empty);
 
         public ReactiveCommand LoadedCommand { get; } = new();
         public ReactiveCommand SaveCommand { get; } = new ReactiveCommand();
@@ -32,7 +35,7 @@ namespace HttpClientWPF
         private readonly ILog4netAdapter _logger =
             Log4netAdapterFactory.Create(logDirectoryName: CommunicationLog.Directory, logFileName: CommunicationLog.FilePath);
 
-        private readonly ILogFileWatcher _logFileWatcher = 
+        private readonly ILogFileWatcher _logFileWatcher =
             LogFileWatcherFactory.Create(logDirectoryName: CommunicationLog.Directory, logFileName: CommunicationLog.FilePath);
 
         public MainWindowViewModel()
@@ -57,6 +60,9 @@ namespace HttpClientWPF
                 this.PortNo.Value = int.Parse(configData.Port);
                 this.Path.Value = configData.Path;
                 this.TimeoutSeconds.Value = configData.TimeoutSeconds;
+                this.UseBasicAuth.Value = configData.UseBasicAuth;
+                this.User.Value = configData.User;
+                this.Password.Value = configData.Password;
             }
             catch (Exception e)
             {
@@ -74,7 +80,10 @@ namespace HttpClientWPF
                     Host = this.HostName.Value,
                     Port = this.PortNo.Value.ToString(),
                     Path = this.Path.Value,
-                    TimeoutSeconds = this.TimeoutSeconds.Value
+                    TimeoutSeconds = this.TimeoutSeconds.Value,
+                    UseBasicAuth = this.UseBasicAuth.Value,
+                    User = this.User.Value,
+                    Password = this.Password.Value
                 };
                 ConfigManager.SaveConfigData(configData);
 

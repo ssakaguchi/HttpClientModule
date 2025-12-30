@@ -1,4 +1,7 @@
-﻿namespace HttpClientService
+﻿using System.Net.Http.Headers;
+using System.Text;
+
+namespace HttpClientService
 {
     public class Client
     {
@@ -35,6 +38,15 @@
             EnsureHttpClient(config);
 
             using var request = new HttpRequestMessage(HttpMethod.Get, command);
+
+            if (config.UseBasicAuth)
+            {
+                // Basic認証ヘッダ付与
+                request.Headers.Authorization = CreateBasicAuthHeader(
+                    config.User,
+                    config.Password
+                );
+            }
 
             try
             {
@@ -74,6 +86,14 @@
 
             _currentBaseAddress = baseAddress;
             _currentTimeoutSeconds = timeoutSeconds;
+        }
+
+        private static AuthenticationHeaderValue CreateBasicAuthHeader(string user, string password)
+        {
+            var raw = $"{user}:{password}";
+            var bytes = Encoding.UTF8.GetBytes(raw);
+            var base64 = Convert.ToBase64String(bytes);
+            return new AuthenticationHeaderValue("Basic", base64);
         }
     }
 }
