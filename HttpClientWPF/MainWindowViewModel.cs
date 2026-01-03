@@ -51,7 +51,7 @@ namespace HttpClientWPF
 
         // todo: 画面に入力されている設定と保存済の設定に差分がある場合は、送信ボタンを無効化するようにする
 
-        private void OnLoaded()
+        private async void OnLoaded()
         {
             try
             {
@@ -63,6 +63,7 @@ namespace HttpClientWPF
                 this.UseBasicAuth.Value = configData.UseBasicAuth;
                 this.User.Value = configData.User;
                 this.Password.Value = configData.Password;
+                this.LogText.Value = await _logFileWatcher.ReadLogFileContentAsync();
             }
             catch (Exception e)
             {
