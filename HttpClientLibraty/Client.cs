@@ -50,7 +50,17 @@ namespace HttpClientService
 
             try
             {
-                return _httpClient.SendAsync(request).GetAwaiter().GetResult();
+                var httpResponseMessage  = _httpClient.SendAsync(request).GetAwaiter().GetResult();
+
+                // ステータスコードが成功でない場合は例外をスロー
+                httpResponseMessage.EnsureSuccessStatusCode();
+
+                return httpResponseMessage;
+            }
+            catch (HttpRequestException)
+            {
+                // 通信エラー
+                throw;
             }
             catch (TaskCanceledException)
             {
