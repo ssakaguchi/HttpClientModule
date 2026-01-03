@@ -8,13 +8,20 @@ namespace HttpClientWPF
 {
     public class MainWindowViewModel : BindableBase, IDisposable
     {
+        public enum AuthenticationMethodType
+        {
+            Basic,
+            Digest,
+            Anonymous,
+        }
+
         public ReactiveProperty<string> HostName { get; } = new ReactiveProperty<string>(string.Empty);
         public ReactiveProperty<int> PortNo { get; } = new ReactiveProperty<int>(0);
         public ReactiveProperty<string> Path { get; } = new ReactiveProperty<string>(string.Empty);
         public ReactiveProperty<int> TimeoutSeconds { get; } = new ReactiveProperty<int>(0);
         public ReactiveProperty<string> LogText { get; } = new ReactiveProperty<string>(string.Empty);
         public ReactiveProperty<string> StatusMessage { get; } = new ReactiveProperty<string>(string.Empty);
-        public ReactiveProperty<bool> UseBasicAuth { get; } = new ReactiveProperty<bool>(false);
+        public ReactiveProperty<AuthenticationMethodType> AuthenticationMethod { get; } = new(AuthenticationMethodType.Basic);
         public ReactiveProperty<string> User { get; } = new ReactiveProperty<string>(string.Empty);
         public ReactiveProperty<string> Password { get; } = new ReactiveProperty<string>(string.Empty);
 
@@ -60,7 +67,15 @@ namespace HttpClientWPF
                 this.PortNo.Value = int.Parse(configData.Port);
                 this.Path.Value = configData.Path;
                 this.TimeoutSeconds.Value = configData.TimeoutSeconds;
-                this.UseBasicAuth.Value = configData.UseBasicAuth;
+                // 未設定や不正値は Basic を設定する
+                if (Enum.TryParse<AuthenticationMethodType>(configData.AuthenticationMethod, ignoreCase: true, out var method))
+                {
+                    AuthenticationMethod.Value = method;
+                }
+                else
+                {
+                    AuthenticationMethod.Value = AuthenticationMethodType.Basic;
+                }
                 this.User.Value = configData.User;
                 this.Password.Value = configData.Password;
                 this.LogText.Value = await _logFileWatcher.ReadLogFileContentAsync();
@@ -82,7 +97,7 @@ namespace HttpClientWPF
                     Port = this.PortNo.Value.ToString(),
                     Path = this.Path.Value,
                     TimeoutSeconds = this.TimeoutSeconds.Value,
-                    UseBasicAuth = this.UseBasicAuth.Value,
+                    AuthenticationMethod = this.AuthenticationMethod.Value.ToString(),
                     User = this.User.Value,
                     Password = this.Password.Value
                 };

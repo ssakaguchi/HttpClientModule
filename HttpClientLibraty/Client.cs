@@ -39,7 +39,7 @@ namespace HttpClientService
 
             using var request = new HttpRequestMessage(HttpMethod.Get, command);
 
-            if (config.UseBasicAuth)
+            if (config.AuthenticationMethod.Equals("Basic"))
             {
                 // Basic認証ヘッダ付与
                 request.Headers.Authorization = CreateBasicAuthHeader(

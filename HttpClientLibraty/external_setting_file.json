@@ -3,7 +3,7 @@
   "port_no": 8080,
   "path": "api/v1/resource",
   "timeout_seconds": 90,
-  "use_basic_auth": true,
+  "authentication_method": "Digest",
   "user": "user",
   "password": "pass"
 }
