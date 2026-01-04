@@ -44,16 +44,16 @@ namespace HttpClientWPF
         private readonly ILog4netAdapter _logger =
             Log4netAdapterFactory.Create(logDirectoryName: CommunicationLog.Directory, logFileName: CommunicationLog.FilePath);
 
-        private readonly ILogFileWatcher _logFileWatcher =
-            LogFileWatcherFactory.Create(logDirectoryName: CommunicationLog.Directory, logFileName: CommunicationLog.FilePath);
+        private readonly ILogFileWatcher _logFileWatcher;
 
-        public MainWindowViewModel(IClient client)
+        public MainWindowViewModel(IClient client, ILogFileWatcher logFileWatcher)
         {
             SaveCommand.Subscribe(this.OnSaveButtonClicked).AddTo(_disposables);
             SendCommand.Subscribe(this.OnSendButtonClicked).AddTo(_disposables);
             LoadedCommand.Subscribe(this.OnLoaded).AddTo(_disposables);
             ClearMessageCommand.Subscribe(this.ClearMessage).AddTo(_disposables);
             this._client = client;
+            this._logFileWatcher = logFileWatcher;
 
             // 通信履歴ファイルの監視を開始
             _logFileWatcher.FileChanged += OnLogFileChanged;
