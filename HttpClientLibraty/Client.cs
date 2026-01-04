@@ -17,9 +17,9 @@ namespace HttpClientService
         /// <summary> HttpClientインスタンス </summary>
         private HttpClient _httpClient = new();
 
-        private readonly IConfigService _configService = new ConfigManager("external_setting_file.json");
+        private readonly IConfigService _configService;
 
-        public Client() { }
+        public Client(IConfigService configService) => _configService = configService;
 
         public string GetMessage(string command)
         {
@@ -29,7 +29,7 @@ namespace HttpClientService
 
         private HttpResponseMessage Get(string command)
         {
-            var config = _configService.GetConfigData();
+            var config = _configService.Load();
 
             // Httpクライアントの設定
             EnsureHttpClient(config);

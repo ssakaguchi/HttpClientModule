@@ -14,10 +14,4 @@
     <ProjectReference Include="..\ConfigService\ConfigService.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="external_setting_file.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>

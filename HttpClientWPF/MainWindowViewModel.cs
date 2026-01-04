@@ -35,9 +35,9 @@ namespace HttpClientWPF
         private readonly IClient _client;
         private readonly ILog4netAdapter _logger;
         private readonly ILogFileWatcher _logFileWatcher;
-        private readonly IConfigService _configService = new ConfigManager("external_setting_file.json");
+        private readonly IConfigService _configService;
 
-        public MainWindowViewModel(IClient client, ILog4netAdapter log4NetAdapter, ILogFileWatcher logFileWatcher)
+        public MainWindowViewModel(IClient client, ILog4netAdapter log4NetAdapter, ILogFileWatcher logFileWatcher, IConfigService configService)
         {
             SaveCommand.Subscribe(this.OnSaveButtonClicked).AddTo(_disposables);
             SendCommand.Subscribe(this.OnSendButtonClicked).AddTo(_disposables);
@@ -47,6 +47,7 @@ namespace HttpClientWPF
             _client = client;
             _logger = log4NetAdapter;
             _logFileWatcher = logFileWatcher;
+            _configService = configService;
 
             // 通信履歴ファイルの監視を開始
             _logFileWatcher.FileChanged += OnLogFileChanged;
@@ -58,7 +59,7 @@ namespace HttpClientWPF
         {
             try
             {
-                var configData = _configService.GetConfigData();
+                var configData = _configService.Load();
                 this.HostName.Value = configData.Host;
                 this.PortNo.Value = int.Parse(configData.Port);
                 this.Path.Value = configData.Path;
@@ -97,7 +98,7 @@ namespace HttpClientWPF
                     User = this.User.Value,
                     Password = this.Password.Value
                 };
-                _configService.SaveConfigData(configData);
+                _configService.Save(configData);
 
                 StatusMessage.Value = "設定を保存しました。";
             }

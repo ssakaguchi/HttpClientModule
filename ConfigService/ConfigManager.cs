@@ -9,7 +9,7 @@ namespace ConfigService
 
         public ConfigManager(string filePath) => _filePath = filePath;
 
-        public ConfigData GetConfigData()
+        public ConfigData Load()
         {
             if (_configData != null) return _configData;
 
@@ -24,7 +24,7 @@ namespace ConfigService
             return _configData;
         }
 
-        public void SaveConfigData(ConfigData configData)
+        public void Save(ConfigData configData)
         {
             string jsonText = JsonConvert.SerializeObject(configData, Formatting.Indented);
             File.WriteAllText(_filePath, jsonText);

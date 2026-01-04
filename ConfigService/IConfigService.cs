@@ -2,8 +2,8 @@
 {
     public interface IConfigService
     {
-        public ConfigData GetConfigData();
+        public ConfigData Load();
 
-        public void SaveConfigData(ConfigData configData);
+        public void Save(ConfigData configData);
     }
 }
