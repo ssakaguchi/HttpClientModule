@@ -3,14 +3,8 @@ using System.Text;
 
 namespace HttpClientService
 {
-    public class Client
+    public class Client : IClient
     {
-        /// <summary>
-        /// シングルトン
-        /// </summary>
-        private static Client? _instance;
-        public static Client Instance => _instance ??= new Client();
-
         /// <summary> 設定中のベースアドレス </summary>
         private string? _currentBaseAddress;
 
@@ -22,7 +16,7 @@ namespace HttpClientService
         /// <summary> HttpClientインスタンス </summary>
         private HttpClient _httpClient = new();
 
-        private Client() { }
+        public Client() { }
 
         public string GetMessage(string command)
         {
@@ -50,7 +44,7 @@ namespace HttpClientService
 
             try
             {
-                var httpResponseMessage  = _httpClient.SendAsync(request).GetAwaiter().GetResult();
+                var httpResponseMessage = _httpClient.SendAsync(request).GetAwaiter().GetResult();
 
                 // ステータスコードが成功でない場合は例外をスロー
                 httpResponseMessage.EnsureSuccessStatusCode();

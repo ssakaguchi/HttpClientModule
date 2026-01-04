@@ -39,18 +39,21 @@ namespace HttpClientWPF
 
         private readonly CompositeDisposable _disposables = new();
 
+        private readonly IClient _client;
+
         private readonly ILog4netAdapter _logger =
             Log4netAdapterFactory.Create(logDirectoryName: CommunicationLog.Directory, logFileName: CommunicationLog.FilePath);
 
         private readonly ILogFileWatcher _logFileWatcher =
             LogFileWatcherFactory.Create(logDirectoryName: CommunicationLog.Directory, logFileName: CommunicationLog.FilePath);
 
-        public MainWindowViewModel()
+        public MainWindowViewModel(IClient client)
         {
             SaveCommand.Subscribe(this.OnSaveButtonClicked).AddTo(_disposables);
             SendCommand.Subscribe(this.OnSendButtonClicked).AddTo(_disposables);
             LoadedCommand.Subscribe(this.OnLoaded).AddTo(_disposables);
             ClearMessageCommand.Subscribe(this.ClearMessage).AddTo(_disposables);
+            this._client = client;
 
             // 通信履歴ファイルの監視を開始
             _logFileWatcher.FileChanged += OnLogFileChanged;
@@ -116,7 +119,7 @@ namespace HttpClientWPF
         {
             try
             {
-                var message = Client.Instance.GetMessage(string.Empty);
+                var message = _client.GetMessage(string.Empty);
                 _logger.Info($"受信メッセージ: {message}");
             }
             catch (Exception e)
