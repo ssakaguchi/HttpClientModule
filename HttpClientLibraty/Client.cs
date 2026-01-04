@@ -1,16 +1,11 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
+using ConfigService;
 
 namespace HttpClientService
 {
-    public class Client
+    public class Client : IClient
     {
-        /// <summary>
-        /// シングルトン
-        /// </summary>
-        private static Client? _instance;
-        public static Client Instance => _instance ??= new Client();
-
         /// <summary> 設定中のベースアドレス </summary>
         private string? _currentBaseAddress;
 
@@ -22,7 +17,9 @@ namespace HttpClientService
         /// <summary> HttpClientインスタンス </summary>
         private HttpClient _httpClient = new();
 
-        private Client() { }
+        private readonly IConfigService _configService;
+
+        public Client(IConfigService configService) => _configService = configService;
 
         public string GetMessage(string command)
         {
@@ -32,7 +29,7 @@ namespace HttpClientService
 
         private HttpResponseMessage Get(string command)
         {
-            var config = ConfigManager.GetConfigData();
+            var config = _configService.Load();
 
             // Httpクライアントの設定
             EnsureHttpClient(config);
@@ -50,7 +47,7 @@ namespace HttpClientService
 
             try
             {
-                var httpResponseMessage  = _httpClient.SendAsync(request).GetAwaiter().GetResult();
+                var httpResponseMessage = _httpClient.SendAsync(request).GetAwaiter().GetResult();
 
                 // ステータスコードが成功でない場合は例外をスロー
                 httpResponseMessage.EnsureSuccessStatusCode();

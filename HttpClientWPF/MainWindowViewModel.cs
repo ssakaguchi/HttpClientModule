@@ -3,6 +3,7 @@ using LoggerService;
 using Reactive.Bindings;
 using Reactive.Bindings.Disposables;
 using Reactive.Bindings.Extensions;
+using ConfigService;
 
 namespace HttpClientWPF
 {
@@ -30,27 +31,23 @@ namespace HttpClientWPF
         public ReactiveCommand SendCommand { get; } = new ReactiveCommand();
         public ReactiveCommand ClearMessageCommand { get; } = new ReactiveCommand();
 
-
-        private static class CommunicationLog
-        {
-            public const string Directory = @"logs";
-            public const string FilePath = @"Communication.log";
-        }
-
         private readonly CompositeDisposable _disposables = new();
+        private readonly IClient _client;
+        private readonly ILog4netAdapter _logger;
+        private readonly ILogFileWatcher _logFileWatcher;
+        private readonly IConfigService _configService;
 
-        private readonly ILog4netAdapter _logger =
-            Log4netAdapterFactory.Create(logDirectoryName: CommunicationLog.Directory, logFileName: CommunicationLog.FilePath);
-
-        private readonly ILogFileWatcher _logFileWatcher =
-            LogFileWatcherFactory.Create(logDirectoryName: CommunicationLog.Directory, logFileName: CommunicationLog.FilePath);
-
-        public MainWindowViewModel()
+        public MainWindowViewModel(IClient client, ILog4netAdapter log4NetAdapter, ILogFileWatcher logFileWatcher, IConfigService configService)
         {
             SaveCommand.Subscribe(this.OnSaveButtonClicked).AddTo(_disposables);
             SendCommand.Subscribe(this.OnSendButtonClicked).AddTo(_disposables);
             LoadedCommand.Subscribe(this.OnLoaded).AddTo(_disposables);
             ClearMessageCommand.Subscribe(this.ClearMessage).AddTo(_disposables);
+            
+            _client = client;
+            _logger = log4NetAdapter;
+            _logFileWatcher = logFileWatcher;
+            _configService = configService;
 
             // 通信履歴ファイルの監視を開始
             _logFileWatcher.FileChanged += OnLogFileChanged;
@@ -62,7 +59,7 @@ namespace HttpClientWPF
         {
             try
             {
-                ConfigData configData = ConfigManager.GetConfigData();
+                var configData = _configService.Load();
                 this.HostName.Value = configData.Host;
                 this.PortNo.Value = int.Parse(configData.Port);
                 this.Path.Value = configData.Path;
@@ -91,6 +88,8 @@ namespace HttpClientWPF
         {
             try
             {
+                ClearMessage();
+
                 var configData = new ConfigData
                 {
                     Host = this.HostName.Value,
@@ -101,7 +100,7 @@ namespace HttpClientWPF
                     User = this.User.Value,
                     Password = this.Password.Value
                 };
-                ConfigManager.SaveConfigData(configData);
+                _configService.Save(configData);
 
                 StatusMessage.Value = "設定を保存しました。";
             }
@@ -116,7 +115,9 @@ namespace HttpClientWPF
         {
             try
             {
-                var message = Client.Instance.GetMessage(string.Empty);
+                ClearMessage();
+
+                var message = _client.GetMessage(string.Empty);
                 _logger.Info($"受信メッセージ: {message}");
             }
             catch (Exception e)
