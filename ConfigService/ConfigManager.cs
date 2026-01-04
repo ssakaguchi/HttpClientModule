@@ -1,32 +1,33 @@
 ﻿using Newtonsoft.Json;
 
-namespace HttpClientService
+namespace ConfigService
 {
-    public class ConfigManager
+    public class ConfigManager : IConfigService
     {
-        private static ConfigData? _configData;
-        public static ConfigData GetConfigData()
-        {
-            if (_configData == null)
-            {
-                string filePath = "external_setting_file.json";
-                if (!File.Exists(filePath))
-                {
-                    throw new FileNotFoundException("設定ファイルが見つかりません。", filePath);
-                }
+        private ConfigData? _configData;
+        private readonly string _filePath;
 
-                string jsonText = File.ReadAllText(filePath);
-                _configData = JsonConvert.DeserializeObject<ConfigData>(jsonText) ?? new ConfigData();
+        public ConfigManager(string filePath) => _filePath = filePath;
+
+        public ConfigData GetConfigData()
+        {
+            if (_configData != null) return _configData;
+
+            if (!File.Exists(_filePath))
+            {
+                throw new FileNotFoundException("設定ファイルが見つかりません。", _filePath);
             }
+
+            string jsonText = File.ReadAllText(_filePath);
+            _configData = JsonConvert.DeserializeObject<ConfigData>(jsonText) ?? new ConfigData();
 
             return _configData;
         }
 
-        public static void SaveConfigData(ConfigData configData)
+        public void SaveConfigData(ConfigData configData)
         {
-            string filePath = "external_setting_file.json";
             string jsonText = JsonConvert.SerializeObject(configData, Formatting.Indented);
-            File.WriteAllText(filePath, jsonText);
+            File.WriteAllText(_filePath, jsonText);
             _configData = configData;
         }
     }
@@ -49,7 +50,7 @@ namespace HttpClientService
         public string AuthenticationMethod { get; set; } = string.Empty;
 
         [JsonProperty("user")]
-        public string User { get;  set; } = string.Empty;
+        public string User { get; set; } = string.Empty;
 
         [JsonProperty("password")]
         public string Password { get; set; } = string.Empty;

@@ -3,6 +3,7 @@ using LoggerService;
 using Reactive.Bindings;
 using Reactive.Bindings.Disposables;
 using Reactive.Bindings.Extensions;
+using ConfigService;
 
 namespace HttpClientWPF
 {
@@ -34,6 +35,7 @@ namespace HttpClientWPF
         private readonly IClient _client;
         private readonly ILog4netAdapter _logger;
         private readonly ILogFileWatcher _logFileWatcher;
+        private readonly IConfigService _configService = new ConfigManager("external_setting_file.json");
 
         public MainWindowViewModel(IClient client, ILog4netAdapter log4NetAdapter, ILogFileWatcher logFileWatcher)
         {
@@ -56,7 +58,7 @@ namespace HttpClientWPF
         {
             try
             {
-                ConfigData configData = ConfigManager.GetConfigData();
+                var configData = _configService.GetConfigData();
                 this.HostName.Value = configData.Host;
                 this.PortNo.Value = int.Parse(configData.Port);
                 this.Path.Value = configData.Path;
@@ -95,7 +97,7 @@ namespace HttpClientWPF
                     User = this.User.Value,
                     Password = this.Password.Value
                 };
-                ConfigManager.SaveConfigData(configData);
+                _configService.SaveConfigData(configData);
 
                 StatusMessage.Value = "設定を保存しました。";
             }

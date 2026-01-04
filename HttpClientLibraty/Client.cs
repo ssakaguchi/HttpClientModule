@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
+using ConfigService;
 
 namespace HttpClientService
 {
@@ -16,6 +17,8 @@ namespace HttpClientService
         /// <summary> HttpClientインスタンス </summary>
         private HttpClient _httpClient = new();
 
+        private readonly IConfigService _configService = new ConfigManager("external_setting_file.json");
+
         public Client() { }
 
         public string GetMessage(string command)
@@ -26,7 +29,7 @@ namespace HttpClientService
 
         private HttpResponseMessage Get(string command)
         {
-            var config = ConfigManager.GetConfigData();
+            var config = _configService.GetConfigData();
 
             // Httpクライアントの設定
             EnsureHttpClient(config);
