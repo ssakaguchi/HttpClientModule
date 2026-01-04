@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpClientWPF", "HttpClient
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggerService", "LoggerService\LoggerService.csproj", "{5A72A992-AC64-404B-B90E-030B2884B5D6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigService", "ConfigService\ConfigService.csproj", "{01444767-F474-4C6A-A281-9197CA174FCD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{5A72A992-AC64-404B-B90E-030B2884B5D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A72A992-AC64-404B-B90E-030B2884B5D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A72A992-AC64-404B-B90E-030B2884B5D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01444767-F474-4C6A-A281-9197CA174FCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01444767-F474-4C6A-A281-9197CA174FCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01444767-F474-4C6A-A281-9197CA174FCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01444767-F474-4C6A-A281-9197CA174FCD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

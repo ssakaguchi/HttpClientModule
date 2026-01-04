@@ -2,7 +2,7 @@
 
 namespace LoggerService
 {
-    internal sealed class LogFileWatcher : IDisposable, ILogFileWatcher
+    public sealed class LogFileWatcher : IDisposable, ILogFileWatcher
     {
         public event EventHandler<string>? FileChanged;
 
@@ -90,13 +90,6 @@ namespace LoggerService
             _fileWatcher?.Dispose();
         }
     }
-
-
-    public static class LogFileWatcherFactory
-    {
-        public static ILogFileWatcher Create(string logDirectoryName, string logFileName) => new LogFileWatcher(logDirectoryName, logFileName);
-    }
-
 
     public interface ILogFileWatcher
     {
