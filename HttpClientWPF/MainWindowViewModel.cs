@@ -88,6 +88,8 @@ namespace HttpClientWPF
         {
             try
             {
+                ClearMessage();
+
                 var configData = new ConfigData
                 {
                     Host = this.HostName.Value,
@@ -113,6 +115,8 @@ namespace HttpClientWPF
         {
             try
             {
+                ClearMessage();
+
                 var message = _client.GetMessage(string.Empty);
                 _logger.Info($"受信メッセージ: {message}");
             }
