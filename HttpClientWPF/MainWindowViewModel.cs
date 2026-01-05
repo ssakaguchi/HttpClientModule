@@ -12,7 +12,6 @@ namespace HttpClientWPF
         public enum AuthenticationMethodType
         {
             Basic,
-            Digest,
             Anonymous,
         }
 
