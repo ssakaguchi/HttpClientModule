@@ -41,7 +41,7 @@ namespace HttpClientWPF
             SaveCommand.Subscribe(this.OnSaveButtonClicked).AddTo(_disposables);
             SendCommand.Subscribe(this.OnSendButtonClicked).AddTo(_disposables);
             LoadedCommand.Subscribe(this.OnLoaded).AddTo(_disposables);
-            ClearMessageCommand.Subscribe(this.ClearMessage).AddTo(_disposables);
+            ClearMessageCommand.Subscribe(this.ClearStatusMessage).AddTo(_disposables);
             
             _client = client;
             _logger = log4NetAdapter;
@@ -63,6 +63,7 @@ namespace HttpClientWPF
                 this.PortNo.Value = int.Parse(configData.Port);
                 this.Path.Value = configData.Path;
                 this.TimeoutSeconds.Value = configData.TimeoutSeconds;
+
                 // 未設定や不正値は Basic を設定する
                 if (Enum.TryParse<AuthenticationMethodType>(configData.AuthenticationMethod, ignoreCase: true, out var method))
                 {
@@ -72,6 +73,7 @@ namespace HttpClientWPF
                 {
                     AuthenticationMethod.Value = AuthenticationMethodType.Basic;
                 }
+
                 this.User.Value = configData.User;
                 this.Password.Value = configData.Password;
                 this.LogText.Value = await _logFileWatcher.ReadLogFileContentAsync();
@@ -87,7 +89,7 @@ namespace HttpClientWPF
         {
             try
             {
-                ClearMessage();
+                ClearStatusMessage();
 
                 var configData = new ConfigData
                 {
@@ -114,7 +116,7 @@ namespace HttpClientWPF
         {
             try
             {
-                ClearMessage();
+                ClearStatusMessage();
 
                 var message = _client.GetMessage(string.Empty);
                 _logger.Info($"受信メッセージ: {message}");
@@ -128,7 +130,7 @@ namespace HttpClientWPF
 
         private void OnLogFileChanged(object? sender, string content) => LogText.Value = content;
 
-        private void ClearMessage() => StatusMessage.Value = string.Empty;
+        private void ClearStatusMessage() => StatusMessage.Value = string.Empty;
 
         public void Dispose()
         {
