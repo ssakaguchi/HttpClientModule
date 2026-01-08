@@ -7,7 +7,7 @@ namespace HttpClientService
     public class Client : IClient
     {
         /// <summary> 設定中のベースアドレス </summary>
-        private string? _currentBaseAddress;
+        private Uri? _currentBaseUri;
 
         /// <summary>
         /// 設定中のタイムアウト時間（秒）
@@ -75,10 +75,18 @@ namespace HttpClientService
         /// <remarks>前回送信時と設定が変わっていない場合は何もしない</remarks>
         private void EnsureHttpClient(ConfigData config)
         {
-            var baseAddress = $"http://{config.Host}:{config.Port}/{config.Path.Trim('/')}";
+            UriBuilder uriBuilder = new()
+            {
+                Scheme = "http",
+                Host = config.Host,
+                Port = Convert.ToInt32(config.Port),
+                Path = config.Path,
+            };
 
             var timeoutSeconds = config.TimeoutSeconds;
-            if (_currentBaseAddress == baseAddress && _currentTimeoutSeconds == timeoutSeconds)
+            if (_currentBaseUri != null &&
+                _currentBaseUri == uriBuilder.Uri &&
+                _currentTimeoutSeconds == timeoutSeconds)
             {
                 return;
             }
@@ -87,14 +95,15 @@ namespace HttpClientService
             _httpClient.Dispose();
             _httpClient = new HttpClient
             {
-                BaseAddress = new Uri(baseAddress),
+                BaseAddress = uriBuilder.Uri,
                 Timeout = TimeSpan.FromSeconds(config.TimeoutSeconds)
             };
 
-            _currentBaseAddress = baseAddress;
+            _currentBaseUri = uriBuilder.Uri;
             _currentTimeoutSeconds = timeoutSeconds;
         }
 
+        /// <summary> Basic認証ヘッダの作成 </summary>
         private static AuthenticationHeaderValue CreateBasicAuthHeader(string user, string password)
         {
             var raw = $"{user}:{password}";
