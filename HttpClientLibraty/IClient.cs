@@ -2,6 +2,8 @@
 {
     public interface IClient
     {
-        public string GetMessage(string command);
+        string GetMessage(string command);
+
+        string Post(string command, string filePath);
     }
 }
