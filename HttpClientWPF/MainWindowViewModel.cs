@@ -32,6 +32,11 @@ namespace HttpClientWPF
         public ReactiveCommand SendCommand { get; } = new ReactiveCommand();
         public ReactiveCommand ClearMessageCommand { get; } = new ReactiveCommand();
 
+
+        public ReactiveProperty<bool> IsUserEnabled { get; } = new ReactiveProperty<bool>(true);
+        public ReactiveProperty<bool> IsPasswordEnabled { get; } = new ReactiveProperty<bool>(true);
+
+        
         public ReactiveProperty<bool> SaveCommandEnabled { get; } = new ReactiveProperty<bool>(true);
         public ReactiveProperty<bool> SendCommandEnabled { get; } = new ReactiveProperty<bool>(true);
 
@@ -48,14 +53,14 @@ namespace HttpClientWPF
             LoadedCommand.Subscribe(this.OnLoaded).AddTo(_disposables);
             ClearMessageCommand.Subscribe(this.ClearStatusMessage).AddTo(_disposables);
 
-            UseHttps.Skip(1).Subscribe(x => { this.UpdateButtonEnabled(); }).AddTo(_disposables);
-            HostName.Skip(1).Subscribe(x => { this.UpdateButtonEnabled(); }).AddTo(_disposables);
-            PortNo.Skip(1).Subscribe(x => { this.UpdateButtonEnabled(); }).AddTo(_disposables);
-            Path.Skip(1).Subscribe(x => { this.UpdateButtonEnabled(); }).AddTo(_disposables);
-            TimeoutSeconds.Skip(1).Subscribe(x => { this.UpdateButtonEnabled(); }).AddTo(_disposables);
-            AuthenticationMethod.Skip(1).Subscribe(x => { this.UpdateButtonEnabled(); }).AddTo(_disposables);
-            User.Skip(1).Subscribe(x => { this.UpdateButtonEnabled(); }).AddTo(_disposables);
-            Password.Skip(1).Subscribe(x => { this.UpdateButtonEnabled(); }).AddTo(_disposables);
+            UseHttps.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
+            HostName.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
+            PortNo.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
+            Path.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
+            TimeoutSeconds.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
+            AuthenticationMethod.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
+            User.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
+            Password.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
 
             _client = client;
             _logger = log4NetAdapter;
@@ -91,7 +96,7 @@ namespace HttpClientWPF
                 this.Password.Value = configData.Password;
                 this.LogText.Value = await _logFileWatcher.ReadLogFileContentAsync();
 
-                this.UpdateButtonEnabled();
+                this.UpdateEnabled();
             }
             catch (Exception e)
             {
@@ -136,12 +141,15 @@ namespace HttpClientWPF
 
         private void OnLogFileChanged(object? sender, string content) => LogText.Value = content;
 
-        private void UpdateButtonEnabled()
+        private void UpdateEnabled()
         {
             ConfigData configData = this.CreateInputConfigData();
             bool existsDifference = _configService.ExistsConfigDifference(configData);
             SaveCommandEnabled.Value = existsDifference;
             SendCommandEnabled.Value = !existsDifference;
+
+            IsUserEnabled.Value = AuthenticationMethod.Value == AuthenticationMethodType.Basic;
+            IsPasswordEnabled.Value = AuthenticationMethod.Value == AuthenticationMethodType.Basic;
         }
 
         private void ClearStatusMessage() => StatusMessage.Value = string.Empty;
