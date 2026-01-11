@@ -1,9 +1,10 @@
-﻿using HttpClientService;
+﻿using System.Reactive.Linq;
+using ConfigService;
+using HttpClientService;
 using LoggerService;
 using Reactive.Bindings;
 using Reactive.Bindings.Disposables;
 using Reactive.Bindings.Extensions;
-using ConfigService;
 
 namespace HttpClientWPF
 {
@@ -31,6 +32,9 @@ namespace HttpClientWPF
         public ReactiveCommand SendCommand { get; } = new ReactiveCommand();
         public ReactiveCommand ClearMessageCommand { get; } = new ReactiveCommand();
 
+        public ReactiveProperty<bool> SaveCommandEnabled { get; } = new ReactiveProperty<bool>(true);
+        public ReactiveProperty<bool> SendCommandEnabled { get; } = new ReactiveProperty<bool>(true);
+
         private readonly CompositeDisposable _disposables = new();
         private readonly IClient _client;
         private readonly ILog4netAdapter _logger;
@@ -44,6 +48,15 @@ namespace HttpClientWPF
             LoadedCommand.Subscribe(this.OnLoaded).AddTo(_disposables);
             ClearMessageCommand.Subscribe(this.ClearStatusMessage).AddTo(_disposables);
 
+            UseHttps.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
+            HostName.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
+            PortNo.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
+            Path.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
+            TimeoutSeconds.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
+            AuthenticationMethod.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
+            User.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
+            Password.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
+
             _client = client;
             _logger = log4NetAdapter;
             _logFileWatcher = logFileWatcher;
@@ -52,8 +65,6 @@ namespace HttpClientWPF
             // 通信履歴ファイルの監視を開始
             _logFileWatcher.FileChanged += OnLogFileChanged;
         }
-
-        // todo: 画面に入力されている設定と保存済の設定に差分がある場合は、送信ボタンを無効化するようにする
 
         private async void OnLoaded()
         {
@@ -79,6 +90,8 @@ namespace HttpClientWPF
                 this.User.Value = configData.User;
                 this.Password.Value = configData.Password;
                 this.LogText.Value = await _logFileWatcher.ReadLogFileContentAsync();
+
+                this.UpdateSaveButtonEnabled();
             }
             catch (Exception e)
             {
@@ -93,17 +106,7 @@ namespace HttpClientWPF
             {
                 ClearStatusMessage();
 
-                var configData = new ConfigData
-                {
-                    Scheme = this.UseHttps.Value ? "https" : "http",
-                    Host = this.HostName.Value,
-                    Port = this.PortNo.Value.ToString(),
-                    Path = this.Path.Value,
-                    TimeoutSeconds = this.TimeoutSeconds.Value,
-                    AuthenticationMethod = this.AuthenticationMethod.Value.ToString(),
-                    User = this.User.Value,
-                    Password = this.Password.Value
-                };
+                var configData = this.CreateInputConfigData();
                 _configService.Save(configData);
 
                 StatusMessage.Value = "設定を保存しました。";
@@ -133,7 +136,36 @@ namespace HttpClientWPF
 
         private void OnLogFileChanged(object? sender, string content) => LogText.Value = content;
 
+
+        private void OnConfigChanged()
+        {
+            this.UpdateSaveButtonEnabled();
+        }
+
+        private void UpdateSaveButtonEnabled()
+        {
+            ConfigData configData = this.CreateInputConfigData();
+            bool existsDifference = _configService.ExistsConfigDifference(configData);
+            SaveCommandEnabled.Value = existsDifference;
+            SendCommandEnabled.Value = !existsDifference;
+        }
+
         private void ClearStatusMessage() => StatusMessage.Value = string.Empty;
+
+        private ConfigData CreateInputConfigData()
+        {
+            return new ConfigData
+            {
+                Scheme = this.UseHttps.Value ? "https" : "http",
+                Host = this.HostName.Value,
+                Port = this.PortNo.Value.ToString(),
+                Path = this.Path.Value,
+                TimeoutSeconds = this.TimeoutSeconds.Value,
+                AuthenticationMethod = this.AuthenticationMethod.Value.ToString(),
+                User = this.User.Value,
+                Password = this.Password.Value
+            };
+        }
 
         public void Dispose()
         {
