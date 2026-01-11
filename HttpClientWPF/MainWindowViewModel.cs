@@ -15,6 +15,7 @@ namespace HttpClientWPF
             Anonymous,
         }
 
+        public ReactiveProperty<bool> UseHttps { get; } = new ReactiveProperty<bool>(false);
         public ReactiveProperty<string> HostName { get; } = new ReactiveProperty<string>(string.Empty);
         public ReactiveProperty<int> PortNo { get; } = new ReactiveProperty<int>(0);
         public ReactiveProperty<string> Path { get; } = new ReactiveProperty<string>(string.Empty);
@@ -42,7 +43,7 @@ namespace HttpClientWPF
             SendCommand.Subscribe(this.OnSendButtonClicked).AddTo(_disposables);
             LoadedCommand.Subscribe(this.OnLoaded).AddTo(_disposables);
             ClearMessageCommand.Subscribe(this.ClearStatusMessage).AddTo(_disposables);
-            
+
             _client = client;
             _logger = log4NetAdapter;
             _logFileWatcher = logFileWatcher;
@@ -59,6 +60,7 @@ namespace HttpClientWPF
             try
             {
                 var configData = _configService.Load();
+                this.UseHttps.Value = configData.Scheme == "https" ? true : false;
                 this.HostName.Value = configData.Host;
                 this.PortNo.Value = int.Parse(configData.Port);
                 this.Path.Value = configData.Path;
@@ -93,6 +95,7 @@ namespace HttpClientWPF
 
                 var configData = new ConfigData
                 {
+                    Scheme = this.UseHttps.Value ? "https" : "http",
                     Host = this.HostName.Value,
                     Port = this.PortNo.Value.ToString(),
                     Path = this.Path.Value,

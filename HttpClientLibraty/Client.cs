@@ -65,7 +65,7 @@ namespace HttpClientService
 
             try
             {
-                _logger.Info($"  URI：{request.RequestUri}");
+                _logger.Info($"  URI：{_httpClient.BaseAddress}");
 
                 var httpResponseMessage = _httpClient.SendAsync(request).GetAwaiter().GetResult();
 
@@ -97,10 +97,10 @@ namespace HttpClientService
         {
             UriBuilder uriBuilder = new()
             {
-                Scheme = "http",
+                Scheme = config.Scheme,
                 Host = config.Host,
                 Port = Convert.ToInt32(config.Port),
-                Path = config.Path,
+                Path = config.Path.TrimStart('/').TrimEnd('/') + "/"
             };
 
             var timeoutSeconds = config.TimeoutSeconds;
