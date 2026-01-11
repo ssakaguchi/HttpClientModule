@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
 using ConfigService;
+using LoggerService;
 
 namespace HttpClientService
 {
@@ -18,8 +19,13 @@ namespace HttpClientService
         private HttpClient _httpClient = new();
 
         private readonly IConfigService _configService;
+        private readonly ILog4netAdapter _logger;
 
-        public Client(IConfigService configService) => _configService = configService;
+        public Client(IConfigService configService, ILog4netAdapter logger)
+        {
+            _configService = configService;
+            _logger = logger;
+        }
 
         public string GetMessage(string command)
         {
@@ -36,6 +42,9 @@ namespace HttpClientService
 
             using var request = new HttpRequestMessage(HttpMethod.Get, command);
 
+            _logger.Info($"GET送信します");
+
+
             if (config.AuthenticationMethod.Equals("Basic"))
             {
                 // Basic認証ヘッダ付与
@@ -43,10 +52,21 @@ namespace HttpClientService
                     config.User,
                     config.Password
                 );
+
+                _logger.Info($"  認証方法：Basic認証");
+                _logger.Info($"  アカウント認証 ");
+                _logger.Info($"    ユーザー名：{config.User}");
+                _logger.Info($"    パスワード：{config.Password}");
+            }
+            else
+            {
+                _logger.Info($"  認証方法：なし");
             }
 
             try
             {
+                _logger.Info($"  URI：{request.RequestUri}");
+
                 var httpResponseMessage = _httpClient.SendAsync(request).GetAwaiter().GetResult();
 
                 // ステータスコードが成功でない場合は例外をスロー
