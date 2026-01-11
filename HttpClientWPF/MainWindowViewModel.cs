@@ -48,14 +48,14 @@ namespace HttpClientWPF
             LoadedCommand.Subscribe(this.OnLoaded).AddTo(_disposables);
             ClearMessageCommand.Subscribe(this.ClearStatusMessage).AddTo(_disposables);
 
-            UseHttps.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
-            HostName.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
-            PortNo.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
-            Path.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
-            TimeoutSeconds.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
-            AuthenticationMethod.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
-            User.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
-            Password.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
+            UseHttps.Skip(1).Subscribe(x => { this.UpdateButtonEnabled(); }).AddTo(_disposables);
+            HostName.Skip(1).Subscribe(x => { this.UpdateButtonEnabled(); }).AddTo(_disposables);
+            PortNo.Skip(1).Subscribe(x => { this.UpdateButtonEnabled(); }).AddTo(_disposables);
+            Path.Skip(1).Subscribe(x => { this.UpdateButtonEnabled(); }).AddTo(_disposables);
+            TimeoutSeconds.Skip(1).Subscribe(x => { this.UpdateButtonEnabled(); }).AddTo(_disposables);
+            AuthenticationMethod.Skip(1).Subscribe(x => { this.UpdateButtonEnabled(); }).AddTo(_disposables);
+            User.Skip(1).Subscribe(x => { this.UpdateButtonEnabled(); }).AddTo(_disposables);
+            Password.Skip(1).Subscribe(x => { this.UpdateButtonEnabled(); }).AddTo(_disposables);
 
             _client = client;
             _logger = log4NetAdapter;
@@ -91,7 +91,7 @@ namespace HttpClientWPF
                 this.Password.Value = configData.Password;
                 this.LogText.Value = await _logFileWatcher.ReadLogFileContentAsync();
 
-                this.UpdateSaveButtonEnabled();
+                this.UpdateButtonEnabled();
             }
             catch (Exception e)
             {
@@ -136,13 +136,7 @@ namespace HttpClientWPF
 
         private void OnLogFileChanged(object? sender, string content) => LogText.Value = content;
 
-
-        private void OnConfigChanged()
-        {
-            this.UpdateSaveButtonEnabled();
-        }
-
-        private void UpdateSaveButtonEnabled()
+        private void UpdateButtonEnabled()
         {
             ConfigData configData = this.CreateInputConfigData();
             bool existsDifference = _configService.ExistsConfigDifference(configData);
