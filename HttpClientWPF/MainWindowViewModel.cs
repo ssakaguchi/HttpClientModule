@@ -20,6 +20,7 @@ namespace HttpClientWPF
         public ReactiveProperty<string> HostName { get; } = new ReactiveProperty<string>(string.Empty);
         public ReactiveProperty<int> PortNo { get; } = new ReactiveProperty<int>(0);
         public ReactiveProperty<string> Path { get; } = new ReactiveProperty<string>(string.Empty);
+        public ReactiveProperty<string> Query { get; } = new ReactiveProperty<string>(string.Empty);
         public ReactiveProperty<int> TimeoutSeconds { get; } = new ReactiveProperty<int>(0);
         public ReactiveProperty<string> LogText { get; } = new ReactiveProperty<string>(string.Empty);
         public ReactiveProperty<string> StatusMessage { get; } = new ReactiveProperty<string>(string.Empty);
@@ -30,10 +31,17 @@ namespace HttpClientWPF
         public ReactiveCommand LoadedCommand { get; } = new();
         public ReactiveCommand SaveCommand { get; } = new ReactiveCommand();
         public ReactiveCommand SendCommand { get; } = new ReactiveCommand();
+        public ReactiveCommand PostCommand { get; } = new ReactiveCommand();
         public ReactiveCommand ClearMessageCommand { get; } = new ReactiveCommand();
 
+
+        public ReactiveProperty<bool> IsUserEnabled { get; } = new ReactiveProperty<bool>(true);
+        public ReactiveProperty<bool> IsPasswordEnabled { get; } = new ReactiveProperty<bool>(true);
+
+        
         public ReactiveProperty<bool> SaveCommandEnabled { get; } = new ReactiveProperty<bool>(true);
         public ReactiveProperty<bool> SendCommandEnabled { get; } = new ReactiveProperty<bool>(true);
+        public ReactiveProperty<bool> PostCommandEnabled { get; } = new ReactiveProperty<bool>(true);
 
         private readonly CompositeDisposable _disposables = new();
         private readonly IClient _client;
@@ -45,17 +53,19 @@ namespace HttpClientWPF
         {
             SaveCommand.Subscribe(this.OnSaveButtonClicked).AddTo(_disposables);
             SendCommand.Subscribe(this.OnSendButtonClicked).AddTo(_disposables);
+            PostCommand.Subscribe(this.OnPostButtonClicked).AddTo(_disposables);
             LoadedCommand.Subscribe(this.OnLoaded).AddTo(_disposables);
             ClearMessageCommand.Subscribe(this.ClearStatusMessage).AddTo(_disposables);
 
-            UseHttps.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
-            HostName.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
-            PortNo.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
-            Path.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
-            TimeoutSeconds.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
-            AuthenticationMethod.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
-            User.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
-            Password.Skip(1).Subscribe(x => { OnConfigChanged(); }).AddTo(_disposables);
+            UseHttps.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
+            HostName.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
+            PortNo.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
+            Path.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
+            Query.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
+            TimeoutSeconds.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
+            AuthenticationMethod.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
+            User.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
+            Password.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
 
             _client = client;
             _logger = log4NetAdapter;
@@ -75,6 +85,7 @@ namespace HttpClientWPF
                 this.HostName.Value = configData.Host;
                 this.PortNo.Value = int.Parse(configData.Port);
                 this.Path.Value = configData.Path;
+                this.Query.Value = configData.Query;
                 this.TimeoutSeconds.Value = configData.TimeoutSeconds;
 
                 // 未設定や不正値は Basic を設定する
@@ -91,7 +102,7 @@ namespace HttpClientWPF
                 this.Password.Value = configData.Password;
                 this.LogText.Value = await _logFileWatcher.ReadLogFileContentAsync();
 
-                this.UpdateSaveButtonEnabled();
+                this.UpdateEnabled();
             }
             catch (Exception e)
             {
@@ -109,6 +120,8 @@ namespace HttpClientWPF
                 var configData = this.CreateInputConfigData();
                 _configService.Save(configData);
 
+                this.UpdateEnabled();
+
                 StatusMessage.Value = "設定を保存しました。";
             }
             catch (Exception e)
@@ -123,31 +136,47 @@ namespace HttpClientWPF
             try
             {
                 ClearStatusMessage();
-
-                var message = _client.GetMessage(string.Empty);
-                _logger.Info($"受信メッセージ: {message}");
+                
+                string message = _client.GetMessage(string.Empty);
+                _logger.Info($"受信データ:\r\n{message}");
             }
             catch (Exception e)
             {
-                _logger.Error("送信に失敗しました。", e);
+                _logger.Error("GET送信に失敗しました。", e);
+                StatusMessage.Value = "送信に失敗しました。";
+            }
+        }
+
+
+        private void OnPostButtonClicked()
+        {
+            try
+            {
+                ClearStatusMessage();
+
+                string filePath = "POST_Sample.txt";
+                string command = "UploadFile";
+                var message = _client.Post(command, filePath);
+                _logger.Info($"受信データ:\r\n{message}");
+            }
+            catch (Exception e)
+            {
+                _logger.Error("POST送信に失敗しました。", e);
                 StatusMessage.Value = "送信に失敗しました。";
             }
         }
 
         private void OnLogFileChanged(object? sender, string content) => LogText.Value = content;
 
-
-        private void OnConfigChanged()
-        {
-            this.UpdateSaveButtonEnabled();
-        }
-
-        private void UpdateSaveButtonEnabled()
+        private void UpdateEnabled()
         {
             ConfigData configData = this.CreateInputConfigData();
             bool existsDifference = _configService.ExistsConfigDifference(configData);
             SaveCommandEnabled.Value = existsDifference;
             SendCommandEnabled.Value = !existsDifference;
+
+            IsUserEnabled.Value = AuthenticationMethod.Value == AuthenticationMethodType.Basic;
+            IsPasswordEnabled.Value = AuthenticationMethod.Value == AuthenticationMethodType.Basic;
         }
 
         private void ClearStatusMessage() => StatusMessage.Value = string.Empty;
@@ -160,6 +189,7 @@ namespace HttpClientWPF
                 Host = this.HostName.Value,
                 Port = this.PortNo.Value.ToString(),
                 Path = this.Path.Value,
+                Query = this.Query.Value,
                 TimeoutSeconds = this.TimeoutSeconds.Value,
                 AuthenticationMethod = this.AuthenticationMethod.Value.ToString(),
                 User = this.User.Value,
