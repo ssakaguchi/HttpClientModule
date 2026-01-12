@@ -117,6 +117,8 @@ namespace HttpClientWPF
                 var configData = this.CreateInputConfigData();
                 _configService.Save(configData);
 
+                this.UpdateEnabled();
+
                 StatusMessage.Value = "設定を保存しました。";
             }
             catch (Exception e)
