@@ -16,6 +16,9 @@ namespace ConfigService
         [JsonProperty("path")]
         public string Path { get; set; } = string.Empty;
 
+        [JsonProperty("query")]
+        public string Query { get; set; } = string.Empty;
+
         [JsonProperty("timeout_seconds")]
         public int TimeoutSeconds { get; set; } = 20;
 
@@ -37,6 +40,7 @@ namespace ConfigService
                     Host == other.Host &&
                     Port == other.Port &&
                     Path == other.Path &&
+                    Query == other.Query &&
                     TimeoutSeconds == other.TimeoutSeconds &&
                     AuthenticationMethod == other.AuthenticationMethod &&
                     User == other.User &&
@@ -50,14 +54,18 @@ namespace ConfigService
         /// <summary> ハッシュコード取得 </summary>
         public override int GetHashCode()
         {
+            // HashCode.Combine の引数は最大8つまでなので、9つ以上の場合はネストして結合
             return HashCode.Combine(
-                Scheme,
-                Host,
-                Port,
-                Path,
-                TimeoutSeconds,
-                AuthenticationMethod,
-                User,
+                HashCode.Combine(
+                    Scheme,
+                    Host,
+                    Port,
+                    Path,
+                    Query,
+                    TimeoutSeconds,
+                    AuthenticationMethod,
+                    User
+                ),
                 Password
             );
         }

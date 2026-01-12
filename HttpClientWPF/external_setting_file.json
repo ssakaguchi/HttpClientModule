@@ -3,6 +3,7 @@
   "host_name": "localhost",
   "port_no": 8080,
   "path": "api/v1/resource",
+  "query":"a=1234&b=abcd",
   "timeout_seconds": 90,
   "authentication_method": "Basic",
   "user": "user",

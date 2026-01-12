@@ -20,6 +20,7 @@ namespace HttpClientWPF
         public ReactiveProperty<string> HostName { get; } = new ReactiveProperty<string>(string.Empty);
         public ReactiveProperty<int> PortNo { get; } = new ReactiveProperty<int>(0);
         public ReactiveProperty<string> Path { get; } = new ReactiveProperty<string>(string.Empty);
+        public ReactiveProperty<string> Query { get; } = new ReactiveProperty<string>(string.Empty);
         public ReactiveProperty<int> TimeoutSeconds { get; } = new ReactiveProperty<int>(0);
         public ReactiveProperty<string> LogText { get; } = new ReactiveProperty<string>(string.Empty);
         public ReactiveProperty<string> StatusMessage { get; } = new ReactiveProperty<string>(string.Empty);
@@ -60,6 +61,7 @@ namespace HttpClientWPF
             HostName.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
             PortNo.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
             Path.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
+            Query.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
             TimeoutSeconds.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
             AuthenticationMethod.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
             User.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
@@ -83,6 +85,7 @@ namespace HttpClientWPF
                 this.HostName.Value = configData.Host;
                 this.PortNo.Value = int.Parse(configData.Port);
                 this.Path.Value = configData.Path;
+                this.Query.Value = configData.Query;
                 this.TimeoutSeconds.Value = configData.TimeoutSeconds;
 
                 // 未設定や不正値は Basic を設定する
@@ -186,6 +189,7 @@ namespace HttpClientWPF
                 Host = this.HostName.Value,
                 Port = this.PortNo.Value.ToString(),
                 Path = this.Path.Value,
+                Query = this.Query.Value,
                 TimeoutSeconds = this.TimeoutSeconds.Value,
                 AuthenticationMethod = this.AuthenticationMethod.Value.ToString(),
                 User = this.User.Value,

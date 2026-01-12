@@ -124,7 +124,8 @@ namespace HttpClientService
                 Scheme = config.Scheme,
                 Host = config.Host,
                 Port = Convert.ToInt32(config.Port),
-                Path = config.Path.TrimStart('/').TrimEnd('/') + "/"
+                Path = config.Path.TrimStart('/').TrimEnd('/') + "/",
+                Query = config.Query
             };
 
             var timeoutSeconds = config.TimeoutSeconds;
