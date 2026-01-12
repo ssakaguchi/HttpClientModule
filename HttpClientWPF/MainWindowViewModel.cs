@@ -30,6 +30,7 @@ namespace HttpClientWPF
         public ReactiveCommand LoadedCommand { get; } = new();
         public ReactiveCommand SaveCommand { get; } = new ReactiveCommand();
         public ReactiveCommand SendCommand { get; } = new ReactiveCommand();
+        public ReactiveCommand PostCommand { get; } = new ReactiveCommand();
         public ReactiveCommand ClearMessageCommand { get; } = new ReactiveCommand();
 
 
@@ -39,6 +40,7 @@ namespace HttpClientWPF
         
         public ReactiveProperty<bool> SaveCommandEnabled { get; } = new ReactiveProperty<bool>(true);
         public ReactiveProperty<bool> SendCommandEnabled { get; } = new ReactiveProperty<bool>(true);
+        public ReactiveProperty<bool> PostCommandEnabled { get; } = new ReactiveProperty<bool>(true);
 
         private readonly CompositeDisposable _disposables = new();
         private readonly IClient _client;
@@ -50,6 +52,7 @@ namespace HttpClientWPF
         {
             SaveCommand.Subscribe(this.OnSaveButtonClicked).AddTo(_disposables);
             SendCommand.Subscribe(this.OnSendButtonClicked).AddTo(_disposables);
+            PostCommand.Subscribe(this.OnPostButtonClicked).AddTo(_disposables);
             LoadedCommand.Subscribe(this.OnLoaded).AddTo(_disposables);
             ClearMessageCommand.Subscribe(this.ClearStatusMessage).AddTo(_disposables);
 
@@ -128,13 +131,32 @@ namespace HttpClientWPF
             try
             {
                 ClearStatusMessage();
-
-                var message = _client.GetMessage(string.Empty);
-                _logger.Info($"受信メッセージ: {message}");
+                
+                string message = _client.GetMessage(string.Empty);
+                _logger.Info($"受信データ:\r\n{message}");
             }
             catch (Exception e)
             {
-                _logger.Error("送信に失敗しました。", e);
+                _logger.Error("GET送信に失敗しました。", e);
+                StatusMessage.Value = "送信に失敗しました。";
+            }
+        }
+
+
+        private void OnPostButtonClicked()
+        {
+            try
+            {
+                ClearStatusMessage();
+
+                string filePath = string.Empty;
+                string command = string.Empty;
+                var message = _client.Post(command, filePath);
+                _logger.Info($"受信データ:\\r\n{message}");
+            }
+            catch (Exception e)
+            {
+                _logger.Error("POST送信に失敗しました。", e);
                 StatusMessage.Value = "送信に失敗しました。";
             }
         }

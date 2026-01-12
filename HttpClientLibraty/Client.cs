@@ -27,12 +27,53 @@ namespace HttpClientService
             _logger = logger;
         }
 
+        /// <summary> コマンドをGET送信する </summary>
         public string GetMessage(string command)
         {
             var httpResponseMessage = Get(command);
             return httpResponseMessage.Content.ReadAsStringAsync().GetAwaiter().GetResult();
         }
 
+        /// <summary> ファイルをPOST送信する </summary>
+        public string Post(string command, string filePath)
+        {
+            var config = _configService.Load();
+
+            // Httpクライアントの設定
+            EnsureHttpClient(config);
+
+            _logger.Info($"POST送信します");
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, command);
+
+            ApplyAuthentication(config, request);
+
+            try
+            {
+                StreamContent fileContent = new(File.OpenRead(filePath));
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+
+                var httpResponseMessage = _httpClient.PostAsync("", fileContent).GetAwaiter().GetResult();
+                return httpResponseMessage.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            }
+            catch (HttpRequestException)
+            {
+                // 通信エラー
+                throw;
+            }
+            catch (TaskCanceledException)
+            {
+                // タイムアウト
+                throw;
+            }
+            catch (Exception)
+            {
+                // その他のエラー
+                throw;
+            }
+        }
+
+        /// <summary> GET送信する </summary>
         private HttpResponseMessage Get(string command)
         {
             var config = _configService.Load();
@@ -44,24 +85,7 @@ namespace HttpClientService
 
             _logger.Info($"GET送信します");
 
-
-            if (config.AuthenticationMethod.Equals("Basic"))
-            {
-                // Basic認証ヘッダ付与
-                request.Headers.Authorization = CreateBasicAuthHeader(
-                    config.User,
-                    config.Password
-                );
-
-                _logger.Info($"  認証方法：Basic認証");
-                _logger.Info($"  アカウント認証 ");
-                _logger.Info($"    ユーザー名：{config.User}");
-                _logger.Info($"    パスワード：{config.Password}");
-            }
-            else
-            {
-                _logger.Info($"  認証方法：なし");
-            }
+            ApplyAuthentication(config, request);
 
             try
             {
@@ -130,6 +154,28 @@ namespace HttpClientService
             var bytes = Encoding.UTF8.GetBytes(raw);
             var base64 = Convert.ToBase64String(bytes);
             return new AuthenticationHeaderValue("Basic", base64);
+        }
+
+        /// <summary> 認証情報の適用 </summary>
+        private void ApplyAuthentication(ConfigData config, HttpRequestMessage request)
+        {
+            if (config.AuthenticationMethod.Equals("Basic"))
+            {
+                // Basic認証ヘッダ付与
+                request.Headers.Authorization = CreateBasicAuthHeader(
+                    config.User,
+                    config.Password
+                );
+
+                _logger.Info($"  認証方法：Basic認証");
+                _logger.Info($"  アカウント認証 ");
+                _logger.Info($"    ユーザー名：{config.User}");
+                _logger.Info($"    パスワード：{config.Password}");
+            }
+            else
+            {
+                _logger.Info($"  認証方法：なし");
+            }
         }
     }
 }
