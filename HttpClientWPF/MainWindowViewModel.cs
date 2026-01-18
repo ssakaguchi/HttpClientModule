@@ -1,6 +1,7 @@
 ﻿using System.Reactive.Linq;
 using ConfigService;
 using HttpClientService;
+using HttpClientWPF.ConfigMapper;
 using HttpClientWPF.FileDialogService;
 using LoggerService;
 using Reactive.Bindings;
@@ -50,12 +51,14 @@ namespace HttpClientWPF
         private readonly ILog4netAdapter _logger;
         private readonly ILogFileWatcher _logFileWatcher;
         private readonly IConfigService _configService;
+        private readonly IConfigMapper _configMapper;
         private readonly IOpenFileDialogService _fileDialogService;
 
         public MainWindowViewModel(IClient client,
                                    ILog4netAdapter log4NetAdapter,
                                    ILogFileWatcher logFileWatcher,
                                    IConfigService configService,
+                                   IConfigMapper configMapper,
                                    IOpenFileDialogService fileDialogService)
         {
             UploadFileSelectCommand.Subscribe(this.OnUploadFileSelectButtonClicked).AddTo(_disposables);
@@ -80,6 +83,7 @@ namespace HttpClientWPF
             _logger = log4NetAdapter;
             _logFileWatcher = logFileWatcher;
             _configService = configService;
+            _configMapper = configMapper;
             _fileDialogService = fileDialogService;
 
             // 通信履歴ファイルの監視を開始
@@ -90,27 +94,8 @@ namespace HttpClientWPF
         {
             try
             {
-                var configData = _configService.Load();
-                this.UseHttps.Value = configData.Scheme == "https" ? true : false;
-                this.HostName.Value = configData.Host;
-                this.PortNo.Value = int.Parse(configData.Port);
-                this.Path.Value = configData.Path;
-                this.Query.Value = configData.Query;
-                this.TimeoutSeconds.Value = configData.TimeoutSeconds;
-
-                // 未設定や不正値は Basic を設定する
-                if (Enum.TryParse<AuthenticationMethodType>(configData.AuthenticationMethod, ignoreCase: true, out var method))
-                {
-                    AuthenticationMethod.Value = method;
-                }
-                else
-                {
-                    AuthenticationMethod.Value = AuthenticationMethodType.Basic;
-                }
-
-                this.User.Value = configData.User;
-                this.Password.Value = configData.Password;
-                this.UploadFilePath.Value = configData.UploadFilePath;
+                var config = _configService.Load();
+                _configMapper.ApplyTo(this, config);
 
                 this.LogText.Value = await _logFileWatcher.ReadLogFileContentAsync();
 
@@ -150,7 +135,7 @@ namespace HttpClientWPF
             {
                 ClearStatusMessage();
 
-                var configData = this.CreateInputConfigData();
+                var configData = _configMapper.CreateFrom(this);
                 _configService.Save(configData);
 
                 this.UpdateEnabled();
@@ -202,8 +187,8 @@ namespace HttpClientWPF
 
         private void UpdateEnabled()
         {
-            ConfigData configData = this.CreateInputConfigData();
-            bool existsDifference = _configService.ExistsConfigDifference(configData);
+            ConfigData config = _configMapper.CreateFrom(this);
+            bool existsDifference = _configService.ExistsConfigDifference(config);
             SaveCommandEnabled.Value = existsDifference;
             SendCommandEnabled.Value = !existsDifference;
             PostCommandEnabled.Value = !existsDifference;
@@ -213,23 +198,6 @@ namespace HttpClientWPF
         }
 
         private void ClearStatusMessage() => StatusMessage.Value = string.Empty;
-
-        private ConfigData CreateInputConfigData()
-        {
-            return new ConfigData
-            {
-                Scheme = this.UseHttps.Value ? "https" : "http",
-                Host = this.HostName.Value,
-                Port = this.PortNo.Value.ToString(),
-                Path = this.Path.Value,
-                Query = this.Query.Value,
-                TimeoutSeconds = this.TimeoutSeconds.Value,
-                AuthenticationMethod = this.AuthenticationMethod.Value.ToString(),
-                User = this.User.Value,
-                Password = this.Password.Value,
-                UploadFilePath = this.UploadFilePath.Value,
-            };
-        }
 
         public void Dispose()
         {
