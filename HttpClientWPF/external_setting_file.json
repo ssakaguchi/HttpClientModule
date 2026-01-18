@@ -7,5 +7,6 @@
   "timeout_seconds": 90,
   "authentication_method": "Basic",
   "user": "user",
-  "password": "pass"
+  "password": "pass",
+  "upload_file_path": "C:/path/to/upload/file.txt"
 }

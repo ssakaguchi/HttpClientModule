@@ -35,7 +35,7 @@ namespace HttpClientService
         }
 
          /// <summary> ファイルをPOST送信する </summary>
-        public string Post(string command, string filePath)
+        public string Post(string command)
         {
             var config = _configService.Load();
 
@@ -48,7 +48,13 @@ namespace HttpClientService
 
             try
             {
-                StreamContent fileContent = new(File.OpenRead(filePath));
+                if (!File.Exists(config.UploadFilePath))
+                {
+                    throw new FileNotFoundException("アップロードファイルが見つかりません。", config.UploadFilePath);
+                }
+
+
+                StreamContent fileContent = new(File.OpenRead(config.UploadFilePath));
                 fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
                 request.Content = fileContent;
             
