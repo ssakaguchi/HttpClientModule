@@ -4,7 +4,7 @@ namespace ConfigService
 {
     public class ConfigManager : IConfigService
     {
-        private ConfigData _configData = new();
+        private ConfigData _config = new();
         private readonly string _filePath;
 
         public ConfigManager(string filePath) => _filePath = filePath;
@@ -18,20 +18,20 @@ namespace ConfigService
             }
 
             string jsonText = File.ReadAllText(_filePath);
-            _configData = JsonConvert.DeserializeObject<ConfigData>(jsonText) ?? new ConfigData();
+            _config = JsonConvert.DeserializeObject<ConfigData>(jsonText) ?? new ConfigData();
 
-            return _configData;
+            return _config;
         }
 
         /// <summary> 設定の保存 </summary>
-        public void Save(ConfigData configData)
+        public void Save(ConfigData config)
         {
-            string jsonText = JsonConvert.SerializeObject(configData, Formatting.Indented);
+            string jsonText = JsonConvert.SerializeObject(config, Formatting.Indented);
             File.WriteAllText(_filePath, jsonText);
-            _configData = configData;
+            _config = config;
         }
 
         /// <summary> 設定に差分があるかどうか </summary>
-        public bool ExistsConfigDifference(ConfigData configData) => !_configData.Equals(configData);
+        public bool ExistsConfigDifference(ConfigData configData) => !_config.Equals(configData);
     }
 }

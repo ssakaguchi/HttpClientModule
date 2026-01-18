@@ -1,6 +1,8 @@
 ﻿using System.Reactive.Linq;
 using ConfigService;
 using HttpClientService;
+using HttpClientWPF.ConfigMapper;
+using HttpClientWPF.FileDialogService;
 using LoggerService;
 using Reactive.Bindings;
 using Reactive.Bindings.Disposables;
@@ -27,13 +29,14 @@ namespace HttpClientWPF
         public ReactiveProperty<AuthenticationMethodType> AuthenticationMethod { get; } = new(AuthenticationMethodType.Basic);
         public ReactiveProperty<string> User { get; } = new ReactiveProperty<string>(string.Empty);
         public ReactiveProperty<string> Password { get; } = new ReactiveProperty<string>(string.Empty);
+        public ReactiveProperty<string> UploadFilePath { get; } = new ReactiveProperty<string>(string.Empty);
 
         public ReactiveCommand LoadedCommand { get; } = new();
         public ReactiveCommand SaveCommand { get; } = new ReactiveCommand();
         public ReactiveCommand SendCommand { get; } = new ReactiveCommand();
         public ReactiveCommand PostCommand { get; } = new ReactiveCommand();
+        public ReactiveCommand UploadFileSelectCommand { get; } = new ReactiveCommand();
         public ReactiveCommand ClearMessageCommand { get; } = new ReactiveCommand();
-
 
         public ReactiveProperty<bool> IsUserEnabled { get; } = new ReactiveProperty<bool>(true);
         public ReactiveProperty<bool> IsPasswordEnabled { get; } = new ReactiveProperty<bool>(true);
@@ -45,15 +48,23 @@ namespace HttpClientWPF
 
         private readonly CompositeDisposable _disposables = new();
         private readonly IClient _client;
-        private readonly ILog4netAdapter _logger;
+        private readonly ILoggerService _logger;
         private readonly ILogFileWatcher _logFileWatcher;
         private readonly IConfigService _configService;
+        private readonly IConfigMapper _configMapper;
+        private readonly IOpenFileDialogService _openFileDialogService;
 
-        public MainWindowViewModel(IClient client, ILog4netAdapter log4NetAdapter, ILogFileWatcher logFileWatcher, IConfigService configService)
+        public MainWindowViewModel(IClient client,
+                                   ILoggerService log4NetAdapter,
+                                   ILogFileWatcher logFileWatcher,
+                                   IConfigService configService,
+                                   IConfigMapper configMapper,
+                                   IOpenFileDialogService fileDialogService)
         {
+            UploadFileSelectCommand.Subscribe(this.OnUploadFileSelectButtonClicked).AddTo(_disposables);
             SaveCommand.Subscribe(this.OnSaveButtonClicked).AddTo(_disposables);
-            SendCommand.Subscribe(this.OnSendButtonClicked).AddTo(_disposables);
-            PostCommand.Subscribe(this.OnPostButtonClicked).AddTo(_disposables);
+            SendCommand.Subscribe(_ => this.OnSendButtonClicked().ConfigureAwait(false)).AddTo(_disposables);
+            PostCommand.Subscribe(_ => this.OnPostButtonClicked().ConfigureAwait(false)).AddTo(_disposables);
             LoadedCommand.Subscribe(this.OnLoaded).AddTo(_disposables);
             ClearMessageCommand.Subscribe(this.ClearStatusMessage).AddTo(_disposables);
 
@@ -66,11 +77,14 @@ namespace HttpClientWPF
             AuthenticationMethod.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
             User.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
             Password.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
+            UploadFilePath.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
 
             _client = client;
             _logger = log4NetAdapter;
             _logFileWatcher = logFileWatcher;
             _configService = configService;
+            _configMapper = configMapper;
+            _openFileDialogService = fileDialogService;
 
             // 通信履歴ファイルの監視を開始
             _logFileWatcher.FileChanged += OnLogFileChanged;
@@ -80,26 +94,9 @@ namespace HttpClientWPF
         {
             try
             {
-                var configData = _configService.Load();
-                this.UseHttps.Value = configData.Scheme == "https" ? true : false;
-                this.HostName.Value = configData.Host;
-                this.PortNo.Value = int.Parse(configData.Port);
-                this.Path.Value = configData.Path;
-                this.Query.Value = configData.Query;
-                this.TimeoutSeconds.Value = configData.TimeoutSeconds;
+                var config = _configService.Load();
+                _configMapper.ApplyTo(this, config);
 
-                // 未設定や不正値は Basic を設定する
-                if (Enum.TryParse<AuthenticationMethodType>(configData.AuthenticationMethod, ignoreCase: true, out var method))
-                {
-                    AuthenticationMethod.Value = method;
-                }
-                else
-                {
-                    AuthenticationMethod.Value = AuthenticationMethodType.Basic;
-                }
-
-                this.User.Value = configData.User;
-                this.Password.Value = configData.Password;
                 this.LogText.Value = await _logFileWatcher.ReadLogFileContentAsync();
 
                 this.UpdateEnabled();
@@ -111,14 +108,35 @@ namespace HttpClientWPF
             }
         }
 
+        private void OnUploadFileSelectButtonClicked()
+        {
+            try
+            {
+                _openFileDialogService.Title = "アップロードファイルの選択";
+                _openFileDialogService.Filter = "すべてのファイル (*.*)|*.*";
+
+                bool? result = _openFileDialogService.OpenFileDialog();
+                if (result == true)
+                {
+                    this.UploadFilePath.Value = _openFileDialogService.FilePath;
+                }
+
+            }
+            catch (Exception e)
+            {
+                _logger.Error("アップロードファイルの選択に失敗しました。", e);
+                StatusMessage.Value = "アップロードファイルの選択に失敗しました。";
+            }
+        }
+
         private void OnSaveButtonClicked()
         {
             try
             {
                 ClearStatusMessage();
 
-                var configData = this.CreateInputConfigData();
-                _configService.Save(configData);
+                var config = _configMapper.CreateFrom(this);
+                _configService.Save(config);
 
                 this.UpdateEnabled();
 
@@ -131,13 +149,13 @@ namespace HttpClientWPF
             }
         }
 
-        private void OnSendButtonClicked()
+        private async Task OnSendButtonClicked()
         {
             try
             {
                 ClearStatusMessage();
                 
-                string message = _client.GetMessage(string.Empty);
+                string message =　await _client.GetAsync(string.Empty);
                 _logger.Info($"受信データ:\r\n{message}");
             }
             catch (Exception e)
@@ -148,15 +166,14 @@ namespace HttpClientWPF
         }
 
 
-        private void OnPostButtonClicked()
+        private async Task OnPostButtonClicked()
         {
             try
             {
                 ClearStatusMessage();
 
-                string filePath = "POST_Sample.txt";
                 string command = "UploadFile";
-                var message = _client.Post(command, filePath);
+                var message = await _client.PostAsync(command);
                 _logger.Info($"受信データ:\r\n{message}");
             }
             catch (Exception e)
@@ -170,32 +187,17 @@ namespace HttpClientWPF
 
         private void UpdateEnabled()
         {
-            ConfigData configData = this.CreateInputConfigData();
-            bool existsDifference = _configService.ExistsConfigDifference(configData);
+            ConfigData config = _configMapper.CreateFrom(this);
+            bool existsDifference = _configService.ExistsConfigDifference(config);
             SaveCommandEnabled.Value = existsDifference;
             SendCommandEnabled.Value = !existsDifference;
+            PostCommandEnabled.Value = !existsDifference;
 
             IsUserEnabled.Value = AuthenticationMethod.Value == AuthenticationMethodType.Basic;
             IsPasswordEnabled.Value = AuthenticationMethod.Value == AuthenticationMethodType.Basic;
         }
 
         private void ClearStatusMessage() => StatusMessage.Value = string.Empty;
-
-        private ConfigData CreateInputConfigData()
-        {
-            return new ConfigData
-            {
-                Scheme = this.UseHttps.Value ? "https" : "http",
-                Host = this.HostName.Value,
-                Port = this.PortNo.Value.ToString(),
-                Path = this.Path.Value,
-                Query = this.Query.Value,
-                TimeoutSeconds = this.TimeoutSeconds.Value,
-                AuthenticationMethod = this.AuthenticationMethod.Value.ToString(),
-                User = this.User.Value,
-                Password = this.Password.Value
-            };
-        }
 
         public void Dispose()
         {

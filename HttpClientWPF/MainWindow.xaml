@@ -6,12 +6,13 @@
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HttpClientWPF"
+        xmlns:converter="clr-namespace:HttpClientWPF.Converter"
         prism:ViewModelLocator.AutoWireViewModel="True"
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d"
         Background="LightCyan"
         Loaded="Window_Loaded"
-        Title="HttpClient" Height="500" Width="825" ResizeMode="NoResize">
+        Title="HttpClient" Height="550" Width="825" ResizeMode="NoResize">
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
             <i:InvokeCommandAction Command="{Binding LoadedCommand}"/>
@@ -21,7 +22,7 @@
         <MouseBinding MouseAction="LeftClick" Command="{Binding ClearMessageCommand}" />
     </Window.InputBindings>
     <Window.Resources>
-        <local:EnumEqualsConverter x:Key="EnumEqualsConverter" />
+        <converter:EnumEqualsConverter x:Key="EnumEqualsConverter" />
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -81,12 +82,18 @@
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
+            <GroupBox Margin="10,0,10,0" Header="Upload File" FontSize="20">
+                <StackPanel Orientation="Horizontal">
+                    <TextBox Text="{Binding UploadFilePath.Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="16" Margin="5,5,0,0" Width="160" Height="30"/>
+                    <Button Content="Select" Command="{Binding UploadFileSelectCommand}" FontSize="16" Margin="5,5,0,0" Height="30" Width="60" HorizontalAlignment="Right" />
+                </StackPanel>
+            </GroupBox>
         </StackPanel>
         <DockPanel Grid.Row="1" LastChildFill="False">
             <Button Content="Save" Command="{Binding SaveCommand}" IsEnabled="{Binding SaveCommandEnabled.Value}" FontSize="16" Margin="5" Height="30" Width="60" />
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                <Button Content="GET" Command="{Binding SendCommand}" IsEnabled="{Binding SendCommandEnabled.Value}" FontSize="16" Margin="5" Height="30" Width="60" HorizontalAlignment="Right"/>
-                <Button Content="POST" Command="{Binding PostCommand}" IsEnabled="{Binding PostCommandEnabled.Value}" FontSize="16" Margin="5" Height="30" Width="60" HorizontalAlignment="Right"/>
+                <Button Content="Health" Command="{Binding SendCommand}" IsEnabled="{Binding SendCommandEnabled.Value}" FontSize="16" Margin="5" Height="30" Width="65" HorizontalAlignment="Right"/>
+                <Button Content="Upload" Command="{Binding PostCommand}" IsEnabled="{Binding PostCommandEnabled.Value}" FontSize="16" Margin="5" Height="30" Width="65" HorizontalAlignment="Right"/>
             </StackPanel>
         </DockPanel>
         <TextBox x:Name="LogTextBox" Grid.Column="1" Grid.RowSpan="2" Text="{Binding LogText.Value}"  Margin="5" IsReadOnly="True" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
