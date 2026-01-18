@@ -6,7 +6,7 @@ using log4net.Repository.Hierarchy;
 
 namespace LoggerService
 {
-    public sealed class Log4netAdapter : ILog4netAdapter
+    public sealed class Log4netAdapter : ILoggerService
     {
         private ILog Logger { get; } = LogManager.GetLogger(typeof(Log4netAdapter));
 
@@ -38,9 +38,8 @@ namespace LoggerService
                 Name = "RollingFileAppender",
                 File = Path.Combine(logDir, logFileName),
                 AppendToFile = true,
-                RollingStyle = RollingFileAppender.RollingMode.Size,
-                MaximumFileSize = "10MB",
-                MaxSizeRollBackups = 3,
+                RollingStyle = RollingFileAppender.RollingMode.Date,
+                DatePattern = "'.'yyyyMMdd",
                 StaticLogFileName = true,
                 LockingModel = new FileAppender.MinimalLock(),
                 Layout = layout
@@ -60,7 +59,7 @@ namespace LoggerService
         public void Error(string message, Exception ex) => Logger.Error(message, ex);
     }
 
-    public interface ILog4netAdapter
+    public interface ILoggerService
     {
         public void Info(string message);
 
