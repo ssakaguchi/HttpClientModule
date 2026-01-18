@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Windows.Data;
 
-namespace HttpClientWPF
+namespace HttpClientWPF.Converter
 {
     public class EnumEqualsConverter : IValueConverter
     {
