@@ -135,8 +135,8 @@ namespace HttpClientWPF
             {
                 ClearStatusMessage();
 
-                var configData = _configMapper.CreateFrom(this);
-                _configService.Save(configData);
+                var config = _configMapper.CreateFrom(this);
+                _configService.Save(config);
 
                 this.UpdateEnabled();
 
