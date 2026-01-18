@@ -154,10 +154,10 @@ namespace HttpClientWPF
             {
                 ClearStatusMessage();
 
-                string filePath = string.Empty;
-                string command = string.Empty;
+                string filePath = "POST_Sample.txt";
+                string command = "UploadFile";
                 var message = _client.Post(command, filePath);
-                _logger.Info($"受信データ:\\r\n{message}");
+                _logger.Info($"受信データ:\r\n{message}");
             }
             catch (Exception e)
             {

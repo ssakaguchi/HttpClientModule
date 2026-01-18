@@ -34,7 +34,7 @@ namespace HttpClientService
             return httpResponseMessage.Content.ReadAsStringAsync().GetAwaiter().GetResult();
         }
 
-        /// <summary> ファイルをPOST送信する </summary>
+         /// <summary> ファイルをPOST送信する </summary>
         public string Post(string command, string filePath)
         {
             var config = _configService.Load();
@@ -46,15 +46,22 @@ namespace HttpClientService
 
             using var request = new HttpRequestMessage(HttpMethod.Post, command);
 
-            ApplyAuthentication(config, request);
-
             try
             {
                 StreamContent fileContent = new(File.OpenRead(filePath));
                 fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                request.Content = fileContent;
+            
+                ApplyAuthentication(config, request);
 
-                var httpResponseMessage = _httpClient.PostAsync("", fileContent).GetAwaiter().GetResult();
-                return httpResponseMessage.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                _logger.Info($"  URI：{_httpClient.BaseAddress}");
+
+                var response = _httpClient.SendAsync(request).GetAwaiter().GetResult();
+
+                // ステータスコードが成功でない場合は例外をスロー
+                response.EnsureSuccessStatusCode();
+
+                return response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
             }
             catch (HttpRequestException)
             {
@@ -91,12 +98,12 @@ namespace HttpClientService
             {
                 _logger.Info($"  URI：{_httpClient.BaseAddress}");
 
-                var httpResponseMessage = _httpClient.SendAsync(request).GetAwaiter().GetResult();
+                var response = _httpClient.SendAsync(request).GetAwaiter().GetResult();
 
                 // ステータスコードが成功でない場合は例外をスロー
-                httpResponseMessage.EnsureSuccessStatusCode();
+                response.EnsureSuccessStatusCode();
 
-                return httpResponseMessage;
+                return response;
             }
             catch (HttpRequestException)
             {
