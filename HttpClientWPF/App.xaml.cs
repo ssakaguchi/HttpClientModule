@@ -22,7 +22,7 @@ namespace HttpClientWPF
             containerRegistry.RegisterSingleton<ILog4netAdapter>
                 (() => new Log4netAdapter(logDirectoryName: @"logs", logFileName: @"Communication.log"));
             containerRegistry.RegisterSingleton<IConfigService>(() => new ConfigManager(filePath: @"external_setting_file.json"));
-            containerRegistry.Register<IOpenFileDialogService, FileDialogService.OpenFileDialogService>();
+            containerRegistry.Register<IOpenFileDialogService, OpenFileDialogService>();
             containerRegistry.Register<IConfigMapper, ConfigMapper.ConfigMapper>();
         }
     }

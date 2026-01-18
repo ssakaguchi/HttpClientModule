@@ -83,11 +83,9 @@
                 </StackPanel>
             </GroupBox>
             <GroupBox Margin="10,0,10,0" Header="Upload File" FontSize="20">
-                <StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBox Text="{Binding UploadFilePath.Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="16" Margin="5,5,0,0" Width="160" Height="30"/>
-                        <Button Content="Select" Command="{Binding UploadFileSelectCommand}" FontSize="16" Margin="5,5,0,0" Height="30" Width="60" HorizontalAlignment="Right" />
-                    </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBox Text="{Binding UploadFilePath.Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="16" Margin="5,5,0,0" Width="160" Height="30"/>
+                    <Button Content="Select" Command="{Binding UploadFileSelectCommand}" FontSize="16" Margin="5,5,0,0" Height="30" Width="60" HorizontalAlignment="Right" />
                 </StackPanel>
             </GroupBox>
         </StackPanel>

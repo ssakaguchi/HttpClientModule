@@ -52,7 +52,7 @@ namespace HttpClientWPF
         private readonly ILogFileWatcher _logFileWatcher;
         private readonly IConfigService _configService;
         private readonly IConfigMapper _configMapper;
-        private readonly IOpenFileDialogService _fileDialogService;
+        private readonly IOpenFileDialogService _openFileDialogService;
 
         public MainWindowViewModel(IClient client,
                                    ILog4netAdapter log4NetAdapter,
@@ -84,7 +84,7 @@ namespace HttpClientWPF
             _logFileWatcher = logFileWatcher;
             _configService = configService;
             _configMapper = configMapper;
-            _fileDialogService = fileDialogService;
+            _openFileDialogService = fileDialogService;
 
             // 通信履歴ファイルの監視を開始
             _logFileWatcher.FileChanged += OnLogFileChanged;
@@ -112,13 +112,13 @@ namespace HttpClientWPF
         {
             try
             {
-                _fileDialogService.Title = "アップロードファイルの選択";
-                _fileDialogService.Filter = "すべてのファイル (*.*)|*.*";
+                _openFileDialogService.Title = "アップロードファイルの選択";
+                _openFileDialogService.Filter = "すべてのファイル (*.*)|*.*";
 
-                bool? result = _fileDialogService.OpenFileDialog();
+                bool? result = _openFileDialogService.OpenFileDialog();
                 if (result == true)
                 {
-                    this.UploadFilePath.Value = _fileDialogService.FilePath;
+                    this.UploadFilePath.Value = _openFileDialogService.FilePath;
                 }
 
             }
