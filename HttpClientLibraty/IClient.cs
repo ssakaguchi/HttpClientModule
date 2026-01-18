@@ -4,6 +4,6 @@
     {
         string GetMessage(string command);
 
-        string Post(string command, string filePath);
+        string Post(string command);
     }
 }

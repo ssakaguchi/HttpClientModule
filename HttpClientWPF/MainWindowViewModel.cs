@@ -2,6 +2,7 @@
 using ConfigService;
 using HttpClientService;
 using LoggerService;
+using Microsoft.Win32;
 using Reactive.Bindings;
 using Reactive.Bindings.Disposables;
 using Reactive.Bindings.Extensions;
@@ -27,13 +28,14 @@ namespace HttpClientWPF
         public ReactiveProperty<AuthenticationMethodType> AuthenticationMethod { get; } = new(AuthenticationMethodType.Basic);
         public ReactiveProperty<string> User { get; } = new ReactiveProperty<string>(string.Empty);
         public ReactiveProperty<string> Password { get; } = new ReactiveProperty<string>(string.Empty);
+        public ReactiveProperty<string> UploadFilePath { get; } = new ReactiveProperty<string>(string.Empty);
 
         public ReactiveCommand LoadedCommand { get; } = new();
         public ReactiveCommand SaveCommand { get; } = new ReactiveCommand();
         public ReactiveCommand SendCommand { get; } = new ReactiveCommand();
         public ReactiveCommand PostCommand { get; } = new ReactiveCommand();
+        public ReactiveCommand UploadFileSelectCommand { get; } = new ReactiveCommand();
         public ReactiveCommand ClearMessageCommand { get; } = new ReactiveCommand();
-
 
         public ReactiveProperty<bool> IsUserEnabled { get; } = new ReactiveProperty<bool>(true);
         public ReactiveProperty<bool> IsPasswordEnabled { get; } = new ReactiveProperty<bool>(true);
@@ -51,6 +53,7 @@ namespace HttpClientWPF
 
         public MainWindowViewModel(IClient client, ILog4netAdapter log4NetAdapter, ILogFileWatcher logFileWatcher, IConfigService configService)
         {
+            UploadFileSelectCommand.Subscribe(this.OnUploadFileSelectButtonClicked).AddTo(_disposables);
             SaveCommand.Subscribe(this.OnSaveButtonClicked).AddTo(_disposables);
             SendCommand.Subscribe(this.OnSendButtonClicked).AddTo(_disposables);
             PostCommand.Subscribe(this.OnPostButtonClicked).AddTo(_disposables);
@@ -66,6 +69,7 @@ namespace HttpClientWPF
             AuthenticationMethod.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
             User.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
             Password.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
+            UploadFilePath.Skip(1).Subscribe(x => { this.UpdateEnabled(); }).AddTo(_disposables);
 
             _client = client;
             _logger = log4NetAdapter;
@@ -100,6 +104,8 @@ namespace HttpClientWPF
 
                 this.User.Value = configData.User;
                 this.Password.Value = configData.Password;
+                this.UploadFilePath.Value = configData.UploadFilePath;
+
                 this.LogText.Value = await _logFileWatcher.ReadLogFileContentAsync();
 
                 this.UpdateEnabled();
@@ -108,6 +114,29 @@ namespace HttpClientWPF
             {
                 _logger.Error("Loadに失敗しました。", e);
                 StatusMessage.Value = "Loadに失敗しました。";
+            }
+        }
+
+        private void OnUploadFileSelectButtonClicked()
+        {
+            try
+            {
+                OpenFileDialog openFileDialog = new()
+                {
+                    Title = "アップロードファイルの選択",
+                    Filter = "すべてのファイル (*.*)|*.*",
+                };
+
+                bool? result = openFileDialog.ShowDialog();
+                if (result == true)
+                {
+                    this.UploadFilePath.Value = openFileDialog.FileName;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Error("アップロードファイルの選択に失敗しました。", e);
+                StatusMessage.Value = "アップロードファイルの選択に失敗しました。";
             }
         }
 
@@ -154,9 +183,8 @@ namespace HttpClientWPF
             {
                 ClearStatusMessage();
 
-                string filePath = "POST_Sample.txt";
                 string command = "UploadFile";
-                var message = _client.Post(command, filePath);
+                var message = _client.Post(command);
                 _logger.Info($"受信データ:\r\n{message}");
             }
             catch (Exception e)
@@ -174,6 +202,7 @@ namespace HttpClientWPF
             bool existsDifference = _configService.ExistsConfigDifference(configData);
             SaveCommandEnabled.Value = existsDifference;
             SendCommandEnabled.Value = !existsDifference;
+            PostCommandEnabled.Value = !existsDifference;
 
             IsUserEnabled.Value = AuthenticationMethod.Value == AuthenticationMethodType.Basic;
             IsPasswordEnabled.Value = AuthenticationMethod.Value == AuthenticationMethodType.Basic;
@@ -193,7 +222,8 @@ namespace HttpClientWPF
                 TimeoutSeconds = this.TimeoutSeconds.Value,
                 AuthenticationMethod = this.AuthenticationMethod.Value.ToString(),
                 User = this.User.Value,
-                Password = this.Password.Value
+                Password = this.Password.Value,
+                UploadFilePath = this.UploadFilePath.Value,
             };
         }
 
