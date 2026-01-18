@@ -1,8 +1,8 @@
 ﻿using System.Reactive.Linq;
 using ConfigService;
 using HttpClientService;
+using HttpClientWPF.FileDialogService;
 using LoggerService;
-using Microsoft.Win32;
 using Reactive.Bindings;
 using Reactive.Bindings.Disposables;
 using Reactive.Bindings.Extensions;
@@ -50,8 +50,13 @@ namespace HttpClientWPF
         private readonly ILog4netAdapter _logger;
         private readonly ILogFileWatcher _logFileWatcher;
         private readonly IConfigService _configService;
+        private readonly IOpenFileDialogService _fileDialogService;
 
-        public MainWindowViewModel(IClient client, ILog4netAdapter log4NetAdapter, ILogFileWatcher logFileWatcher, IConfigService configService)
+        public MainWindowViewModel(IClient client,
+                                   ILog4netAdapter log4NetAdapter,
+                                   ILogFileWatcher logFileWatcher,
+                                   IConfigService configService,
+                                   IOpenFileDialogService fileDialogService)
         {
             UploadFileSelectCommand.Subscribe(this.OnUploadFileSelectButtonClicked).AddTo(_disposables);
             SaveCommand.Subscribe(this.OnSaveButtonClicked).AddTo(_disposables);
@@ -75,6 +80,7 @@ namespace HttpClientWPF
             _logger = log4NetAdapter;
             _logFileWatcher = logFileWatcher;
             _configService = configService;
+            _fileDialogService = fileDialogService;
 
             // 通信履歴ファイルの監視を開始
             _logFileWatcher.FileChanged += OnLogFileChanged;
@@ -121,17 +127,15 @@ namespace HttpClientWPF
         {
             try
             {
-                OpenFileDialog openFileDialog = new()
-                {
-                    Title = "アップロードファイルの選択",
-                    Filter = "すべてのファイル (*.*)|*.*",
-                };
+                _fileDialogService.Title = "アップロードファイルの選択";
+                _fileDialogService.Filter = "すべてのファイル (*.*)|*.*";
 
-                bool? result = openFileDialog.ShowDialog();
+                bool? result = _fileDialogService.OpenFileDialog();
                 if (result == true)
                 {
-                    this.UploadFilePath.Value = openFileDialog.FileName;
+                    this.UploadFilePath.Value = _fileDialogService.FilePath;
                 }
+
             }
             catch (Exception e)
             {
