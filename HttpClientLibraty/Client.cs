@@ -19,9 +19,9 @@ namespace HttpClientService
         private HttpClient _httpClient = new();
 
         private readonly IConfigService _configService;
-        private readonly ILog4netAdapter _logger;
+        private readonly ILoggerService _logger;
 
-        public Client(IConfigService configService, ILog4netAdapter logger)
+        public Client(IConfigService configService, ILoggerService logger)
         {
             _configService = configService;
             _logger = logger;

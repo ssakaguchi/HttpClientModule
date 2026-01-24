@@ -48,14 +48,14 @@ namespace HttpClientWPF
 
         private readonly CompositeDisposable _disposables = new();
         private readonly IClient _client;
-        private readonly ILog4netAdapter _logger;
+        private readonly ILoggerService _logger;
         private readonly ILogFileWatcher _logFileWatcher;
         private readonly IConfigService _configService;
         private readonly IConfigMapper _configMapper;
         private readonly IOpenFileDialogService _openFileDialogService;
 
         public MainWindowViewModel(IClient client,
-                                   ILog4netAdapter log4NetAdapter,
+                                   ILoggerService log4NetAdapter,
                                    ILogFileWatcher logFileWatcher,
                                    IConfigService configService,
                                    IConfigMapper configMapper,
