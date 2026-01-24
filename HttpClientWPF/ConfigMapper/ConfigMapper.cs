@@ -6,7 +6,7 @@ namespace HttpClientWPF.ConfigMapper
     {
         public void ApplyTo(MainWindowViewModel vm, ConfigData config)
         {
-            if (vm == null) { throw new ArgumentNullException(nameof(vm)); }
+            ArgumentNullException.ThrowIfNull(vm);
             ArgumentNullException.ThrowIfNull(config);
 
             vm.UseHttps.Value = string.Equals(config.Scheme, "https", StringComparison.OrdinalIgnoreCase);
@@ -35,7 +35,7 @@ namespace HttpClientWPF.ConfigMapper
 
         public ConfigData CreateFrom(MainWindowViewModel vm)
         {
-            if (vm == null) { throw new ArgumentNullException(nameof(vm)); }
+            ArgumentNullException.ThrowIfNull(vm);
 
             return new ConfigData
             {
