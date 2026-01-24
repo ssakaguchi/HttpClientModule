@@ -34,7 +34,7 @@ namespace HttpClientService
             return httpResponseMessage.Content.ReadAsStringAsync().GetAwaiter().GetResult();
         }
 
-         /// <summary> ファイルをPOST送信する </summary>
+        /// <summary> ファイルをPOST送信する </summary>
         public string Post(string command)
         {
             var config = _configService.Load();
@@ -42,27 +42,29 @@ namespace HttpClientService
             // Httpクライアントの設定
             EnsureHttpClient(config);
 
-            _logger.Info($"POST送信します");
-
             using var request = new HttpRequestMessage(HttpMethod.Post, command);
+
+            if (!File.Exists(config.UploadFilePath))
+            {
+                throw new FileNotFoundException("アップロードファイルが見つかりません。", config.UploadFilePath);
+            }
+
+            _logger.Info($"POST送信します");
 
             try
             {
-                if (!File.Exists(config.UploadFilePath))
-                {
-                    throw new FileNotFoundException("アップロードファイルが見つかりません。", config.UploadFilePath);
-                }
-
-
                 StreamContent fileContent = new(File.OpenRead(config.UploadFilePath));
                 fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
                 request.Content = fileContent;
-            
+
                 ApplyAuthentication(config, request);
 
                 _logger.Info($"  URI：{_httpClient.BaseAddress}");
 
                 var response = _httpClient.SendAsync(request).GetAwaiter().GetResult();
+
+                var statusCode = response.StatusCode;
+                _logger.Info($"  ステータスコード：{(int)statusCode} ({statusCode})");
 
                 // ステータスコードが成功でない場合は例外をスロー
                 response.EnsureSuccessStatusCode();
@@ -105,6 +107,9 @@ namespace HttpClientService
                 _logger.Info($"  URI：{_httpClient.BaseAddress}");
 
                 var response = _httpClient.SendAsync(request).GetAwaiter().GetResult();
+
+                var statusCode = response.StatusCode;
+                _logger.Info($"  ステータスコード：{(int)statusCode} ({statusCode})");
 
                 // ステータスコードが成功でない場合は例外をスロー
                 response.EnsureSuccessStatusCode();
