@@ -27,15 +27,50 @@ namespace HttpClientService
             _logger = logger;
         }
 
-        /// <summary> コマンドをGET送信する </summary>
-        public string GetMessage(string command)
+        /// <summary> GET送信する </summary>
+        public async Task<string> GetAsync(string command, CancellationToken cancellationToken = default)
         {
-            var httpResponseMessage = Get(command);
-            return httpResponseMessage.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            var config = _configService.Load();
+            EnsureHttpClient(config);
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, command);
+
+            _logger.Info("疎通確認（GET）します");
+            ApplyAuthentication(config, request);
+
+            try
+            {
+                _logger.Info($"  URI：{_httpClient.BaseAddress}");
+
+                var response = await _httpClient.SendAsync(request, cancellationToken);
+                var statusCode = response.StatusCode;
+
+                _logger.Info($"  ステータスコード：{(int)statusCode} ({statusCode})");
+
+                // ステータスコードが成功でない場合は例外をスロー
+                response.EnsureSuccessStatusCode();
+
+                return await response.Content.ReadAsStringAsync(cancellationToken);
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.Error("通信エラーが発生しました", ex);
+                throw;
+            }
+            catch (OperationCanceledException ex) when (ex.InnerException is TimeoutException)
+            {
+                _logger.Error("タイムアウトしました", ex);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("未知の例外エラーが発生しました", ex);
+                throw;
+            }
         }
 
         /// <summary> ファイルをPOST送信する </summary>
-        public string Post(string command)
+        public async Task<string> PostAsync(string command, CancellationToken cancellationToken = default)
         {
             var config = _configService.Load();
 
@@ -49,7 +84,7 @@ namespace HttpClientService
                 throw new FileNotFoundException("アップロードファイルが見つかりません。", config.UploadFilePath);
             }
 
-            _logger.Info($"POST送信します");
+            _logger.Info($"ファイルをアップロード（POST）します");
 
             try
             {
@@ -61,7 +96,7 @@ namespace HttpClientService
 
                 _logger.Info($"  URI：{_httpClient.BaseAddress}");
 
-                var response = _httpClient.SendAsync(request).GetAwaiter().GetResult();
+                var response = await _httpClient.SendAsync(request, cancellationToken);
 
                 var statusCode = response.StatusCode;
                 _logger.Info($"  ステータスコード：{(int)statusCode} ({statusCode})");
@@ -69,66 +104,24 @@ namespace HttpClientService
                 // ステータスコードが成功でない場合は例外をスロー
                 response.EnsureSuccessStatusCode();
 
-                return response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                return await response.Content.ReadAsStringAsync(cancellationToken);
             }
             catch (HttpRequestException)
             {
                 // 通信エラー
+                _logger.Error($"  通信エラーが発生しました");
                 throw;
             }
             catch (TaskCanceledException)
             {
                 // タイムアウト
+                _logger.Error($"  タイムアウトしました");
                 throw;
             }
             catch (Exception)
             {
                 // その他のエラー
-                throw;
-            }
-        }
-
-        /// <summary> GET送信する </summary>
-        private HttpResponseMessage Get(string command)
-        {
-            var config = _configService.Load();
-
-            // Httpクライアントの設定
-            EnsureHttpClient(config);
-
-            using var request = new HttpRequestMessage(HttpMethod.Get, command);
-
-            _logger.Info($"GET送信します");
-
-            ApplyAuthentication(config, request);
-
-            try
-            {
-                _logger.Info($"  URI：{_httpClient.BaseAddress}");
-
-                var response = _httpClient.SendAsync(request).GetAwaiter().GetResult();
-
-                var statusCode = response.StatusCode;
-                _logger.Info($"  ステータスコード：{(int)statusCode} ({statusCode})");
-
-                // ステータスコードが成功でない場合は例外をスロー
-                response.EnsureSuccessStatusCode();
-
-                return response;
-            }
-            catch (HttpRequestException)
-            {
-                // 通信エラー
-                throw;
-            }
-            catch (TaskCanceledException)
-            {
-                // タイムアウト
-                throw;
-            }
-            catch (Exception)
-            {
-                // その他のエラー
+                _logger.Error($"  未知の例外エラーが発生しました");
                 throw;
             }
         }
@@ -146,10 +139,9 @@ namespace HttpClientService
                 Query = config.Query
             };
 
-            var timeoutSeconds = config.TimeoutSeconds;
             if (_currentBaseUri != null &&
                 _currentBaseUri == uriBuilder.Uri &&
-                _currentTimeoutSeconds == timeoutSeconds)
+                _currentTimeoutSeconds == config.TimeoutSeconds)
             {
                 return;
             }
@@ -163,7 +155,7 @@ namespace HttpClientService
             };
 
             _currentBaseUri = uriBuilder.Uri;
-            _currentTimeoutSeconds = timeoutSeconds;
+            _currentTimeoutSeconds = config.TimeoutSeconds;
         }
 
         /// <summary> Basic認証ヘッダの作成 </summary>
