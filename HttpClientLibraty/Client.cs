@@ -28,55 +28,49 @@ namespace HttpClientService
         }
 
         /// <summary> GET送信する </summary>
-        public string Get(string command)
+        public async Task<string> GetAsync(string command, CancellationToken cancellationToken = default)
         {
             var config = _configService.Load();
-
-            // Httpクライアントの設定
             EnsureHttpClient(config);
 
             using var request = new HttpRequestMessage(HttpMethod.Get, command);
 
-            _logger.Info($"疎通確認（GET）します");
-
+            _logger.Info("疎通確認（GET）します");
             ApplyAuthentication(config, request);
 
             try
             {
                 _logger.Info($"  URI：{_httpClient.BaseAddress}");
 
-                var response = _httpClient.SendAsync(request).GetAwaiter().GetResult();
-
+                var response = await _httpClient.SendAsync(request, cancellationToken);
                 var statusCode = response.StatusCode;
+
                 _logger.Info($"  ステータスコード：{(int)statusCode} ({statusCode})");
 
                 // ステータスコードが成功でない場合は例外をスロー
                 response.EnsureSuccessStatusCode();
 
-                return response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                return await response.Content.ReadAsStringAsync(cancellationToken);
             }
-            catch (HttpRequestException)
+            catch (HttpRequestException ex)
             {
-                // 通信エラー
-                _logger.Info($"  通信エラーが発生しました");
+                _logger.Error("通信エラーが発生しました", ex);
                 throw;
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException ex) when (ex.InnerException is TimeoutException)
             {
-                // タイムアウト
-                _logger.Info($"  タイムアウトしました");
+                _logger.Error("タイムアウトしました", ex);
                 throw;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // その他のエラー
-                _logger.Info($"  未知の例外エラーが発生しました");
+                _logger.Error("未知の例外エラーが発生しました", ex);
                 throw;
             }
-        } 
+        }
 
         /// <summary> ファイルをPOST送信する </summary>
-        public string Post(string command)
+        public async Task<string> PostAsync(string command, CancellationToken cancellationToken = default)
         {
             var config = _configService.Load();
 
@@ -102,7 +96,7 @@ namespace HttpClientService
 
                 _logger.Info($"  URI：{_httpClient.BaseAddress}");
 
-                var response = _httpClient.SendAsync(request).GetAwaiter().GetResult();
+                var response = await _httpClient.SendAsync(request, cancellationToken);
 
                 var statusCode = response.StatusCode;
                 _logger.Info($"  ステータスコード：{(int)statusCode} ({statusCode})");
@@ -110,24 +104,24 @@ namespace HttpClientService
                 // ステータスコードが成功でない場合は例外をスロー
                 response.EnsureSuccessStatusCode();
 
-                return response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                return await response.Content.ReadAsStringAsync(cancellationToken);
             }
             catch (HttpRequestException)
             {
                 // 通信エラー
-                _logger.Info($"  通信エラーが発生しました");
+                _logger.Error($"  通信エラーが発生しました");
                 throw;
             }
             catch (TaskCanceledException)
             {
                 // タイムアウト
-                _logger.Info($"  タイムアウトしました");
+                _logger.Error($"  タイムアウトしました");
                 throw;
             }
             catch (Exception)
             {
                 // その他のエラー
-                _logger.Info($"  未知の例外エラーが発生しました");
+                _logger.Error($"  未知の例外エラーが発生しました");
                 throw;
             }
         }

@@ -63,8 +63,8 @@ namespace HttpClientWPF
         {
             UploadFileSelectCommand.Subscribe(this.OnUploadFileSelectButtonClicked).AddTo(_disposables);
             SaveCommand.Subscribe(this.OnSaveButtonClicked).AddTo(_disposables);
-            SendCommand.Subscribe(this.OnSendButtonClicked).AddTo(_disposables);
-            PostCommand.Subscribe(this.OnPostButtonClicked).AddTo(_disposables);
+            SendCommand.Subscribe(_ => this.OnSendButtonClicked().ConfigureAwait(false)).AddTo(_disposables);
+            PostCommand.Subscribe(_ => this.OnPostButtonClicked().ConfigureAwait(false)).AddTo(_disposables);
             LoadedCommand.Subscribe(this.OnLoaded).AddTo(_disposables);
             ClearMessageCommand.Subscribe(this.ClearStatusMessage).AddTo(_disposables);
 
@@ -149,13 +149,13 @@ namespace HttpClientWPF
             }
         }
 
-        private void OnSendButtonClicked()
+        private async Task OnSendButtonClicked()
         {
             try
             {
                 ClearStatusMessage();
                 
-                string message = _client.Get(string.Empty);
+                string message =　await _client.GetAsync(string.Empty);
                 _logger.Info($"受信データ:\r\n{message}");
             }
             catch (Exception e)
@@ -166,14 +166,14 @@ namespace HttpClientWPF
         }
 
 
-        private void OnPostButtonClicked()
+        private async Task OnPostButtonClicked()
         {
             try
             {
                 ClearStatusMessage();
 
                 string command = "UploadFile";
-                var message = _client.Post(command);
+                var message = await _client.PostAsync(command);
                 _logger.Info($"受信データ:\r\n{message}");
             }
             catch (Exception e)
