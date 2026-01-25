@@ -27,12 +27,53 @@ namespace HttpClientService
             _logger = logger;
         }
 
-        /// <summary> コマンドをGET送信する </summary>
-        public string GetMessage(string command)
+        /// <summary> GET送信する </summary>
+        public string Get(string command)
         {
-            var httpResponseMessage = Get(command);
-            return httpResponseMessage.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-        }
+            var config = _configService.Load();
+
+            // Httpクライアントの設定
+            EnsureHttpClient(config);
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, command);
+
+            _logger.Info($"疎通確認（GET）します");
+
+            ApplyAuthentication(config, request);
+
+            try
+            {
+                _logger.Info($"  URI：{_httpClient.BaseAddress}");
+
+                var response = _httpClient.SendAsync(request).GetAwaiter().GetResult();
+
+                var statusCode = response.StatusCode;
+                _logger.Info($"  ステータスコード：{(int)statusCode} ({statusCode})");
+
+                // ステータスコードが成功でない場合は例外をスロー
+                response.EnsureSuccessStatusCode();
+
+                return response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            }
+            catch (HttpRequestException)
+            {
+                // 通信エラー
+                _logger.Info($"  通信エラーが発生しました");
+                throw;
+            }
+            catch (TaskCanceledException)
+            {
+                // タイムアウト
+                _logger.Info($"  タイムアウトしました");
+                throw;
+            }
+            catch (Exception)
+            {
+                // その他のエラー
+                _logger.Info($"  未知の例外エラーが発生しました");
+                throw;
+            }
+        } 
 
         /// <summary> ファイルをPOST送信する </summary>
         public string Post(string command)
@@ -74,61 +115,19 @@ namespace HttpClientService
             catch (HttpRequestException)
             {
                 // 通信エラー
+                _logger.Info($"  通信エラーが発生しました");
                 throw;
             }
             catch (TaskCanceledException)
             {
                 // タイムアウト
+                _logger.Info($"  タイムアウトしました");
                 throw;
             }
             catch (Exception)
             {
                 // その他のエラー
-                throw;
-            }
-        }
-
-        /// <summary> GET送信する </summary>
-        private HttpResponseMessage Get(string command)
-        {
-            var config = _configService.Load();
-
-            // Httpクライアントの設定
-            EnsureHttpClient(config);
-
-            using var request = new HttpRequestMessage(HttpMethod.Get, command);
-
-            _logger.Info($"疎通確認（GET）します");
-
-            ApplyAuthentication(config, request);
-
-            try
-            {
-                _logger.Info($"  URI：{_httpClient.BaseAddress}");
-
-                var response = _httpClient.SendAsync(request).GetAwaiter().GetResult();
-
-                var statusCode = response.StatusCode;
-                _logger.Info($"  ステータスコード：{(int)statusCode} ({statusCode})");
-
-                // ステータスコードが成功でない場合は例外をスロー
-                response.EnsureSuccessStatusCode();
-
-                return response;
-            }
-            catch (HttpRequestException)
-            {
-                // 通信エラー
-                throw;
-            }
-            catch (TaskCanceledException)
-            {
-                // タイムアウト
-                throw;
-            }
-            catch (Exception)
-            {
-                // その他のエラー
+                _logger.Info($"  未知の例外エラーが発生しました");
                 throw;
             }
         }

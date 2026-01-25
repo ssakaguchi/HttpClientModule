@@ -155,7 +155,7 @@ namespace HttpClientWPF
             {
                 ClearStatusMessage();
                 
-                string message = _client.GetMessage(string.Empty);
+                string message = _client.Get(string.Empty);
                 _logger.Info($"受信データ:\r\n{message}");
             }
             catch (Exception e)

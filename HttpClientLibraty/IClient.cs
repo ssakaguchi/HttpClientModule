@@ -2,7 +2,7 @@
 {
     public interface IClient
     {
-        string GetMessage(string command);
+        string Get(string command);
 
         string Post(string command);
     }
