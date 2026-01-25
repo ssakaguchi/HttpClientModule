@@ -92,8 +92,8 @@
         <DockPanel Grid.Row="1" LastChildFill="False">
             <Button Content="Save" Command="{Binding SaveCommand}" IsEnabled="{Binding SaveCommandEnabled.Value}" FontSize="16" Margin="5" Height="30" Width="60" />
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                <Button Content="GET" Command="{Binding SendCommand}" IsEnabled="{Binding SendCommandEnabled.Value}" FontSize="16" Margin="5" Height="30" Width="60" HorizontalAlignment="Right"/>
-                <Button Content="POST" Command="{Binding PostCommand}" IsEnabled="{Binding PostCommandEnabled.Value}" FontSize="16" Margin="5" Height="30" Width="60" HorizontalAlignment="Right"/>
+                <Button Content="Health" Command="{Binding SendCommand}" IsEnabled="{Binding SendCommandEnabled.Value}" FontSize="16" Margin="5" Height="30" Width="65" HorizontalAlignment="Right"/>
+                <Button Content="Upload" Command="{Binding PostCommand}" IsEnabled="{Binding PostCommandEnabled.Value}" FontSize="16" Margin="5" Height="30" Width="65" HorizontalAlignment="Right"/>
             </StackPanel>
         </DockPanel>
         <TextBox x:Name="LogTextBox" Grid.Column="1" Grid.RowSpan="2" Text="{Binding LogText.Value}"  Margin="5" IsReadOnly="True" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>

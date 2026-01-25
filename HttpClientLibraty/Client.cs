@@ -49,7 +49,7 @@ namespace HttpClientService
                 throw new FileNotFoundException("アップロードファイルが見つかりません。", config.UploadFilePath);
             }
 
-            _logger.Info($"POST送信します");
+            _logger.Info($"ファイルをアップロード（POST）します");
 
             try
             {
@@ -98,7 +98,7 @@ namespace HttpClientService
 
             using var request = new HttpRequestMessage(HttpMethod.Get, command);
 
-            _logger.Info($"GET送信します");
+            _logger.Info($"疎通確認（GET）します");
 
             ApplyAuthentication(config, request);
 
