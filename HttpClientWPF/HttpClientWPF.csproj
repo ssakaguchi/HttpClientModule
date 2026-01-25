@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ConfigService\ConfigService.csproj" />
-    <ProjectReference Include="..\HttpClientLibraty\HttpClientService.csproj" />
+    <ProjectReference Include="..\HttpClientLibrary\HttpClientService.csproj" />
     <ProjectReference Include="..\LoggerService\LoggerService.csproj" />
   </ItemGroup>
 
