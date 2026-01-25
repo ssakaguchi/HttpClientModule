@@ -139,10 +139,9 @@ namespace HttpClientService
                 Query = config.Query
             };
 
-            var timeoutSeconds = config.TimeoutSeconds;
             if (_currentBaseUri != null &&
                 _currentBaseUri == uriBuilder.Uri &&
-                _currentTimeoutSeconds == timeoutSeconds)
+                _currentTimeoutSeconds == config.TimeoutSeconds)
             {
                 return;
             }
@@ -156,7 +155,7 @@ namespace HttpClientService
             };
 
             _currentBaseUri = uriBuilder.Uri;
-            _currentTimeoutSeconds = timeoutSeconds;
+            _currentTimeoutSeconds = config.TimeoutSeconds;
         }
 
         /// <summary> Basic認証ヘッダの作成 </summary>
