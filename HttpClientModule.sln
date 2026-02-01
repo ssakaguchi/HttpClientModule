@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigService", "ConfigServ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpClientService", "HttpClientLibrary\HttpClientService.csproj", "{D700DD72-97C7-70DD-A1A0-E2E501B21CC3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MainWindowViewModelTest", "MainWindowViewModelTest\MainWindowViewModelTest.csproj", "{AC5082FD-5A57-442A-8E81-A6BBBE31552F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{D700DD72-97C7-70DD-A1A0-E2E501B21CC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D700DD72-97C7-70DD-A1A0-E2E501B21CC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D700DD72-97C7-70DD-A1A0-E2E501B21CC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC5082FD-5A57-442A-8E81-A6BBBE31552F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC5082FD-5A57-442A-8E81-A6BBBE31552F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC5082FD-5A57-442A-8E81-A6BBBE31552F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC5082FD-5A57-442A-8E81-A6BBBE31552F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
